@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "nuklear.h": "c",
+        "graphics.h": "c",
+        "nuklear_csfml.h": "c",
+        "node_editor.c": "cpp"
+    }
+}
