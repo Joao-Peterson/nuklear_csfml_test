@@ -3,6 +3,8 @@
         "nuklear.h": "c",
         "graphics.h": "c",
         "nuklear_csfml.h": "c",
-        "node_editor.c": "cpp"
+        "node_editor.c": "cpp",
+        "stdio.h": "c",
+        "opengl.h": "c"
     }
 }
