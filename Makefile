@@ -20,7 +20,7 @@ L_FLAGS += -lcsfml-network-2
 L_FLAGS += -lcsfml-system-2
 L_FLAGS += -lcsfml-window-2
 
-SOURCES := main.c glad/src/glad.c
+SOURCES := main.c glad/src/glad.c src/doc.c src/doc_json.c src/parse_utils.c src/base64.c
 MAIN_APP := main.exe
 BUILD_DIR := build/
 
@@ -47,6 +47,6 @@ $(MAIN_APP) : $(OBJS) $(RES_OUT)
 	$(CC) $(C_FLAGS) $(I_FLAGS) -c $< -o $(addprefix $(BUILD_DIR), $(notdir $@))
 
 clear : 
-	@rm -f $(MAIN_APP)
-	@rm -f $(OBJS_BUILD)
-	@rm -f $(RES_OUT)
+	rm -f $(MAIN_APP)
+	rm -f $(OBJS_BUILD)
+	rm -f $(RES_OUT)

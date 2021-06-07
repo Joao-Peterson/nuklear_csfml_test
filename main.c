@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <SFML/Graphics.h>
 
@@ -18,14 +19,31 @@
 #define NK_CSFML_IMPLEMENTATION
 #include "inc/nuklear_csfml.h"
 
+#include "inc/settings.h"
+#include "inc/nk_mygui.h"
+#include "inc/doc.h"
+#include "inc/doc_json.h"
+
+
+
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
 
+
+
 int main(int argc, char **argv){
+
+    /* settings */
     
+    pcfg = doc_json_open("./cfg.json");                                             // user settings
+    if(pcfg == NULL){
+        printf("File \"cfg.json\" is missing.\n");
+        return 1;
+    }
+
     /* csfml */
     sfVideoMode mode = {.height = WINDOW_HEIGHT, .width = WINDOW_WIDTH, .bitsPerPixel = 24};
     sfRenderWindow *window = sfRenderWindow_create(
@@ -60,7 +78,8 @@ int main(int argc, char **argv){
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
 
     /* render loop */
-    while(sfRenderWindow_isOpen(window)){ 
+    bool running = sfRenderWindow_isOpen(window);
+    while(running){ 
         sfEvent event;
 
         nk_input_begin(context);
@@ -68,6 +87,7 @@ int main(int argc, char **argv){
         while(sfRenderWindow_pollEvent(window, &event)){
             switch(event.type){                                                     // sfml events
                 case sfEvtClosed:
+                    running = false;
                     sfRenderWindow_close(window);
                 break;
 
@@ -81,29 +101,10 @@ int main(int argc, char **argv){
             // sfRenderWindow_display(window);
         }
         nk_input_end(context);
+        if(!running) break;
 
         /* GUI */
-        window_size = sfRenderWindow_getSize(window);
-        if (nk_begin(context, "Demo", nk_rect(0, 0, window_size.x, window_size.y),
-            NK_WINDOW_TITLE))
-        {
-            static int property = 20;
-
-            nk_layout_row_static(context, 30, 80, 1);
-            if (nk_button_label(context, "button"))
-                fprintf(stdout, "button pressed\n");
-
-            struct nk_command_buffer *canvas = nk_window_get_canvas(context);
-            struct nk_rect rect;
-            nk_widget(&rect, context);
-            rect.w = 250;
-            rect.h = 250;
-            nk_fill_rect(canvas, rect, 2, nk_rgb(0, 127, 127));
-
-            nk_layout_row_dynamic(context, 25, 1);
-            nk_property_int(context, "Compression:", 0, &property, 100, 10, 1);
-        }
-        nk_end(context);
+        nk_mygui(context, window);
 
         /* Draw nuklear (opengl) */
         sfRenderWindow_setActive(window, sfTrue);
@@ -114,7 +115,6 @@ int main(int argc, char **argv){
         * back into a default state. Make sure to either save and restore or
         * reset your own state after drawing rendering the UI. */
         nk_csfml_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
-        nk_clear(context);
         // sfRenderWindow_display(window);
 
         /* sfml draw (graphics module) */

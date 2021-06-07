@@ -1,0 +1,71 @@
+{
+    "window": {
+        "topbar": {
+            "file": {
+                "New file": {
+                    "size": 0,
+                    "label": "New file"
+                },
+                "Open file": {
+                    "size": 0,
+                    "label": "Open file"
+                },
+                "Save file": {
+                    "size": 0,
+                    "label": "Save file"
+                },
+                "Save file as": {
+                    "size": 0,
+                    "label": "Save file as"
+                },
+                "size": 4,
+                "label": "File"
+            },
+            "edit": {
+                "size": 0,
+                "label": "Edit"
+            },
+            "view": null,
+            "help": null,
+            "size": 2,
+            "height": 26
+        },
+        "body": {
+            "sidebar": {
+                "width": 70
+            }
+        },
+        "footer": {
+            "height": 50
+        },
+        "menu_dropdown": {
+            "width": 200,
+            "height": 3000
+        }
+    },
+    "text": {
+        "widget":{
+            "padding": 20
+        }
+    },
+    "theme": {
+        "dark": {
+            "topbar":   "#0f1218ff",
+            "body":     "#141820ff",
+            "footer":   "#0f1218ff",
+            "select":   "#272a30ff"
+        },
+        "light": {
+            "topbar":   "#e8ecf7FF",
+            "body":     "#f4f7ffFF",
+            "footer":   "#e8ecf7FF",
+            "select":   "#d2d7e5ff"
+        },
+        "size": 2,
+        "active": 0
+    },
+    "debug": {
+        "border": false,
+        "color": "#ff00ffff"
+    }
+}

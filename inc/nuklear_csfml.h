@@ -244,7 +244,7 @@ NK_API void nk_csfml_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int
             glBindTexture(GL_TEXTURE_2D, (GLuint)cmd->texture.id);
             glScissor(
                 (GLint)(cmd->clip_rect.x),
-                (GLint)((window_size.x - (GLint)(cmd->clip_rect.y + cmd->clip_rect.h))),
+                (GLint)((window_size.y - (GLint)(cmd->clip_rect.y + cmd->clip_rect.h))),
                 (GLint)(cmd->clip_rect.w),
                 (GLint)(cmd->clip_rect.h));
             glDrawElements(GL_TRIANGLES, (GLsizei)cmd->elem_count, GL_UNSIGNED_SHORT, offset);

@@ -1,0 +1,19 @@
+{
+    "window": {
+        "topbar": {
+            "file": {
+                "1": "New file",
+                "2": "Open file",
+                "3": "Save file",
+                "4": "Save file as",
+                "5": "BRUH",
+                "6": "Carol",
+                "size": 6
+            },
+            "edit": null,
+            "view": null,
+            "help": null,
+            "size": 4
+        }
+    }
+}
