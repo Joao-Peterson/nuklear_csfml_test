@@ -14,6 +14,7 @@
 #include <SFML/Graphics.h>
 #include "settings.h"
 #include "doc.h"
+#include "global_state.h"
 
 /* --------------------------------------------- Macros --------------------------------------------- */
 
@@ -86,6 +87,9 @@ void nk_mygui_styles(struct nk_context *context){
     context->style.contextual_button.text_hover = get_color_cfg_nk("font");
     context->style.contextual_button.text_active = get_color_cfg_nk("font");
 
+    // label
+    context->style.text.color = get_color_cfg_nk("font");
+
     // // selectable
     // context->style.selectable.hover.type = NK_STYLE_ITEM_COLOR;
     // context->style.selectable.hover.data.color = get_color_cfg_nk("hover1");
@@ -99,8 +103,8 @@ void nk_mygui_styles(struct nk_context *context){
 }
 
 
-// top bar
-void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
+// topbar
+void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
     char buffer1[200];
     char buffer2[200];
     char buffer3[200];
@@ -110,9 +114,11 @@ void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
     context->style.window.fixed_background.data.color = get_color_cfg_nk("topbar");
     if(nk_group_begin(context, "topbar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
 
+        float menu_width_acc = 0;
+
         // menus dropdown
         nk_menubar_begin(context);
-        nk_layout_row_begin(context, NK_STATIC, cfg_get("window.topbar.height", int), cfg_get("window.topbar.size", int));
+        nk_layout_row_begin(context, NK_STATIC, cfg_get("window.topbar.height", int), cfg_get("window.topbar.size", int) + 1);
 
         // for every menu in cfg file
         for(int j = 0; j < doc_get(pcfg, "window.topbar.size", int); ++j){
@@ -121,9 +127,14 @@ void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
 
             char *topbar_field_label = doc_get(pcfg, buffer2, char *);
 
-            nk_layout_row_push(context, nk_mygui_get_text_width(context, topbar_field_label) + cfg_get("text.widget.padding", int));
+            float menu_width = nk_mygui_get_text_width(context, topbar_field_label) + cfg_get("text.widget.padding", int);
+            menu_width_acc += menu_width;
 
-            if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_LEFT, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
+            // push the menus width into row
+            nk_layout_row_push(context, menu_width);
+
+            // callback over click on menu button
+            if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_CENTERED, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
                 nk_layout_row_dynamic(context, doc_get(pcfg, "window.topbar.height", int), 1);
                 snprintf(buffer2, 200, "%s.size", buffer1);
 
@@ -136,6 +147,10 @@ void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
             }
         }
 
+        // centered label 
+        nk_layout_row_push(context, nk_window_get_width(context) - 2*menu_width_acc);
+        nk_label(context, global_state.topbar_title, NK_TEXT_CENTERED);
+
         nk_layout_row_end(context);
         nk_menubar_end(context);
 
@@ -144,16 +159,28 @@ void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
 }
 
 
+// sidebar
+void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
+
+    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
+    context->style.window.fixed_background.data.color = get_color_cfg_nk("sidebar");
+    if(nk_group_begin(context, "sidebar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
+        
+
+        nk_group_end(context);
+    }
+}
+
+
 // body
-void nk_my_gui_body(struct nk_context *context, sfRenderWindow *window){
-    sfVector2u window_size = sfRenderWindow_getSize(window);
+void nk_mygui_body(struct nk_context *context, sfRenderWindow *window){
     
     context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
     context->style.window.fixed_background.data.color = get_color_cfg_nk("body");
     if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR | debug_border())){
         
-        nk_layout_row_static(context, window_size.y - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int) - 2, cfg_get("window.body.sidebar.width", int), 1);
-        nk_button_label(context, "Sidebar!!!");
+        nk_layout_row_static(context, nk_window_get_height(context) - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), cfg_get("window.body.sidebar.width", int), 2);
+        nk_mygui_sidebar(context, window);
 
         nk_group_end(context);
     }
@@ -161,7 +188,7 @@ void nk_my_gui_body(struct nk_context *context, sfRenderWindow *window){
 
 
 // footer
-void nk_my_gui_footer(struct nk_context *context, sfRenderWindow *window){
+void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window){
     context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
     context->style.window.fixed_background.data.color = get_color_cfg_nk("footer");
     if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR | debug_border())){
@@ -192,15 +219,15 @@ void nk_mygui(struct nk_context *context, sfRenderWindow *window){
 
             // topbar
             nk_layout_row_dynamic(context, cfg_get("window.topbar.height", int), 1);
-            nk_my_gui_topbar(context, window);
+            nk_mygui_topbar(context, window);
 
             // body
             nk_layout_row_dynamic(context, main_window_height - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), 1);
-            nk_my_gui_body(context, window);
+            nk_mygui_body(context, window);
 
             // footer context
             nk_layout_row_dynamic(context, cfg_get("window.footer.height", int), 1);
-            nk_my_gui_footer(context, window);
+            nk_mygui_footer(context, window);
 
 
             nk_group_end(context);

@@ -24,15 +24,13 @@
 #include "inc/doc.h"
 #include "inc/doc_json.h"
 
-
+#define GLOBAL_STATE_IMPLEMENTATION
+#include "inc/global_state.h"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
-
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
-
-
 
 int main(int argc, char **argv){
 
@@ -41,11 +39,14 @@ int main(int argc, char **argv){
         return 0;
     }    
 
+    global_state.window_title = cfg_get("text.title", char*);
+    global_state.topbar_title = cfg_get("text.title", char*);
+
     /* csfml */
     sfVideoMode mode = {.height = WINDOW_HEIGHT, .width = WINDOW_WIDTH, .bitsPerPixel = 24};
     sfRenderWindow *window = sfRenderWindow_create(
         mode,
-        "Nuklear and CSFML!",
+        global_state.window_title,
         sfDefaultStyle,
         NULL
     );
@@ -62,7 +63,6 @@ int main(int argc, char **argv){
     sfVector2u window_size = sfRenderWindow_getSize(window);
 
     /* nuklear */
-
     // font
     struct nk_font_atlas *atlas;
     nk_csfml_font_stash_begin(&atlas);
@@ -80,8 +80,8 @@ int main(int argc, char **argv){
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
 
     /* render loop */
-    bool running = sfRenderWindow_isOpen(window);
-    while(running){ 
+    global_state.sfml_running = sfRenderWindow_isOpen(window);
+    while(global_state.sfml_running){ 
         sfEvent event;
 
         nk_input_begin(context);
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
         while(sfRenderWindow_pollEvent(window, &event)){
             switch(event.type){                                                     // sfml events
                 case sfEvtClosed:
-                    running = false;
+                    global_state.sfml_running = false;
                     sfRenderWindow_close(window);
                 break;
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv){
             nk_csfml_handle_event(&event);                                          // nuklear events
         }
         nk_input_end(context);
-        if(!running) break;
+        if(!global_state.sfml_running) break;
 
         /* GUI */
         nk_mygui(context, window);
