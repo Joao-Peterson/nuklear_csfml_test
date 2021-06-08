@@ -15,115 +15,207 @@
 #include "settings.h"
 #include "doc.h"
 
+/* --------------------------------------------- Macros --------------------------------------------- */
+
 // window/group debug border macro
 #define debug_border() ((cfg_get("debug.border", bool)) ? NK_WINDOW_BORDER : false)
+
+// macro get nk_color from cfg file
+#define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*));
+
+/* --------------------------------------------- Functions ------------------------------------------ */
 
 // get a string width accordingly with the context font
 float nk_mygui_get_text_width(struct nk_context *context, char *text){
     return nk_font_text_width(context->style.font->userdata, context->style.font->height, text, strlen(text));
 }
 
-// set context background color for windows and groups
-void nk_mygui_set_window_background_color(struct nk_context *context, char *hex_color){
-    context->style.window.background = nk_rgba_hex(hex_color);
-    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
-    context->style.window.fixed_background.data.color = nk_rgba_hex(hex_color);
+
+// gui style
+void nk_mygui_styles(struct nk_context *context){
+    
+    // menu window / groups
+    context->style.window.background = get_color_cfg_nk("window");
+    context->style.window.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
+    context->style.window.padding = nk_vec2(0,0);                                   // pad between window and groups
+    context->style.window.menu_border = cfg_get("debug.border_width", int) * debug_border();
+    context->style.window.menu_padding = nk_vec2(0,0);
+    // context->style.window.min_row_height_padding = 0;
+    context->style.window.spacing = nk_vec2(0, 0);
+    context->style.window.group_padding = nk_vec2(0,0);                             // set zero padding between groups nesting
+    context->style.window.group_border_color = nk_rgba_hex(cfg_get("debug.color", char*));
+    context->style.window.group_border = cfg_get("debug.border_width", int) * debug_border();
+
+    // buttons
+    context->style.button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
+    context->style.button.border = cfg_get("debug.border_width", int) * debug_border();                                  
+    context->style.button.normal.type = NK_STYLE_ITEM_COLOR;
+    context->style.button.normal.data.color = get_color_cfg_nk("topbar");
+    context->style.button.active.type = NK_STYLE_ITEM_COLOR;
+    context->style.button.active.data.color = get_color_cfg_nk("selected1");
+    context->style.button.hover.type = NK_STYLE_ITEM_COLOR;
+    context->style.button.hover.data.color = get_color_cfg_nk("hover1");
+    context->style.button.text_normal = get_color_cfg_nk("font");
+    context->style.button.text_hover = get_color_cfg_nk("font");
+    context->style.button.text_active = get_color_cfg_nk("font");
+
+    // menu button
+    context->style.menu_button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
+    context->style.menu_button.border = cfg_get("debug.border_width", int) * debug_border();                                  
+    context->style.menu_button.normal.type = NK_STYLE_ITEM_COLOR;
+    context->style.menu_button.normal.data.color = get_color_cfg_nk("topbar");
+    context->style.menu_button.active.type = NK_STYLE_ITEM_COLOR;
+    context->style.menu_button.active.data.color = get_color_cfg_nk("selected1");
+    context->style.menu_button.hover.type = NK_STYLE_ITEM_COLOR;
+    context->style.menu_button.hover.data.color = get_color_cfg_nk("hover1");
+    context->style.menu_button.text_normal = get_color_cfg_nk("font");
+    context->style.menu_button.text_hover = get_color_cfg_nk("font");
+    context->style.menu_button.text_active = get_color_cfg_nk("font");
+
+    // contextual button, buttons inside menus
+    context->style.window.contextual_padding = nk_vec2(0,0);
+    context->style.contextual_button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
+    context->style.contextual_button.border = cfg_get("debug.border_width", int) * debug_border();
+    context->style.contextual_button.normal.type = NK_STYLE_ITEM_COLOR;
+    context->style.contextual_button.normal.data.color = get_color_cfg_nk("window");
+    context->style.contextual_button.active.type = NK_STYLE_ITEM_COLOR;
+    context->style.contextual_button.active.data.color = get_color_cfg_nk("selected1");
+    context->style.contextual_button.hover.type = NK_STYLE_ITEM_COLOR;
+    context->style.contextual_button.hover.data.color = get_color_cfg_nk("hover1");
+    context->style.contextual_button.text_normal = get_color_cfg_nk("font");
+    context->style.contextual_button.text_hover = get_color_cfg_nk("font");
+    context->style.contextual_button.text_active = get_color_cfg_nk("font");
+
+    // // selectable
+    // context->style.selectable.hover.type = NK_STYLE_ITEM_COLOR;
+    // context->style.selectable.hover.data.color = get_color_cfg_nk("hover1");
+
+    // // option
+    // context->style.option.hover.type = NK_STYLE_ITEM_COLOR;
+    // context->style.option.hover.data.color = get_color_cfg_nk("hover1");
+    // context->style.option.active.type = NK_STYLE_ITEM_COLOR;
+    // context->style.option.active.data.color = get_color_cfg_nk("hover1");
+
 }
+
+
+// top bar
+void nk_my_gui_topbar(struct nk_context *context, sfRenderWindow *window){
+    char buffer1[200];
+    char buffer2[200];
+    char buffer3[200];
+    
+    // topbar
+    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
+    context->style.window.fixed_background.data.color = get_color_cfg_nk("topbar");
+    if(nk_group_begin(context, "topbar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
+
+        // menus dropdown
+        nk_menubar_begin(context);
+        nk_layout_row_begin(context, NK_STATIC, cfg_get("window.topbar.height", int), cfg_get("window.topbar.size", int));
+
+        // for every menu in cfg file
+        for(int j = 0; j < doc_get(pcfg, "window.topbar.size", int); ++j){
+            snprintf(buffer1, 200, "%s[%i]", "window.topbar", j);
+            snprintf(buffer2, 200, "%s.label", buffer1);
+
+            char *topbar_field_label = doc_get(pcfg, buffer2, char *);
+
+            nk_layout_row_push(context, nk_mygui_get_text_width(context, topbar_field_label) + cfg_get("text.widget.padding", int));
+
+            if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_LEFT, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
+                nk_layout_row_dynamic(context, doc_get(pcfg, "window.topbar.height", int), 1);
+                snprintf(buffer2, 200, "%s.size", buffer1);
+
+                // for every field inside the menu
+                for(int i = 0; i < doc_get(pcfg, buffer2, int); ++i){
+                    snprintf(buffer3, 200, "%s[%i].label", buffer1, i);
+                    nk_menu_item_label(context, doc_get(pcfg, buffer3, char*), NK_TEXT_LEFT);
+                }
+                nk_menu_end(context);
+            }
+        }
+
+        nk_layout_row_end(context);
+        nk_menubar_end(context);
+
+        nk_group_end(context);
+    }
+}
+
+
+// body
+void nk_my_gui_body(struct nk_context *context, sfRenderWindow *window){
+    sfVector2u window_size = sfRenderWindow_getSize(window);
+    
+    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
+    context->style.window.fixed_background.data.color = get_color_cfg_nk("body");
+    if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR | debug_border())){
+        
+        nk_layout_row_static(context, window_size.y - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int) - 2, cfg_get("window.body.sidebar.width", int), 1);
+        nk_button_label(context, "Sidebar!!!");
+
+        nk_group_end(context);
+    }
+}
+
+
+// footer
+void nk_my_gui_footer(struct nk_context *context, sfRenderWindow *window){
+    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
+    context->style.window.fixed_background.data.color = get_color_cfg_nk("footer");
+    if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR | debug_border())){
+
+
+        nk_group_end(context);
+    }
+}
+
 
 // main gui routine
 void nk_mygui(struct nk_context *context, sfRenderWindow *window){
     sfVector2u window_size = sfRenderWindow_getSize(window);
 
-    context->style.window.group_padding = nk_vec2(0,0);                             // set zero padding between groups nesting
-    context->style.window.padding = nk_vec2(0,0);                                   // pad between window and groups
-
-    // seeting a border and constrast color for debuging boxes
-    context->style.button.border = debug_border();                                  
-    context->style.menu_button.border = debug_border();
-    context->style.button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.menu_button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.window.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.window.group_border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-
     // main gui window
-    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT | NK_WINDOW_NO_SCROLLBAR)){  
-        char buffer1[200];
-        char buffer2[200];
-        char buffer3[200];
-        
+    // if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT | NK_WINDOW_NO_SCROLLBAR)){  
+    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT)){  
+
+
+        // styles
+        nk_mygui_styles(context);
+
         // main group inside main window
-        nk_layout_row_dynamic(context, window_size.y, 1);
+        nk_layout_row_dynamic(context, nk_window_get_height(context), 1);
         if(nk_group_begin(context, "main_group", NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){
 
+            float main_window_height = nk_window_get_height(context);
+
             // topbar
-            snprintf(buffer1, 200, "%s[%i].topbar", "theme", cfg_get("theme.active", int));
-            nk_mygui_set_window_background_color(context, cfg_get(buffer1, char *));                    // set background color
-            context->style.tab.background.type = NK_STYLE_ITEM_COLOR;
-            context->style.tab.background.data.color = nk_rgba_hex(cfg_get(buffer1, char *));               
-
             nk_layout_row_dynamic(context, cfg_get("window.topbar.height", int), 1);
-            if(nk_group_begin(context, "topbar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-
-                nk_menubar_begin(context);
-                nk_layout_row_begin(context, NK_STATIC, cfg_get("window.topbar.height", int), cfg_get("window.topbar.size", int));
-
-                for(int j = 0; j < doc_get(pcfg, "window.topbar.size", int); ++j){
-                    snprintf(buffer1, 200, "%s[%i]", "window.topbar", j);
-                    snprintf(buffer2, 200, "%s.label", buffer1);
-
-                    char *topbar_field_label = doc_get(pcfg, buffer2, char *);
-
-                    nk_layout_row_push(context, nk_mygui_get_text_width(context, topbar_field_label) + cfg_get("text.widget.padding", int));
-
-                    if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_LEFT, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
-                        nk_layout_row_dynamic(context, doc_get(pcfg, "window.topbar.height", int), 1);
-                        snprintf(buffer2, 200, "%s.size", buffer1);
-                        for(int i = 0; i < doc_get(pcfg, buffer2, int); ++i){
-                            snprintf(buffer3, 200, "%s[%i].label", buffer1, i);
-                            nk_menu_item_label(context, doc_get(pcfg, buffer3, char*), NK_TEXT_LEFT);
-                        }
-                        nk_menu_end(context);
-                    }
-                }
-
-                nk_layout_row_end(context);
-                nk_menubar_end(context);
-
-                nk_group_end(context);
-            }
+            nk_my_gui_topbar(context, window);
 
             // body
-            snprintf(buffer1, 200, "%s[%i].body", "theme", cfg_get("theme.active", int));
-            nk_mygui_set_window_background_color(context, cfg_get(buffer1, char *));                    // set background color
+            nk_layout_row_dynamic(context, main_window_height - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), 1);
+            nk_my_gui_body(context, window);
 
-            nk_layout_row_dynamic(context, window_size.y - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int) - 8, 1);
-            if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-                
-                nk_layout_row_static(context, window_size.y - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int) - 2, cfg_get("window.body.sidebar.width", int), 1);
-                nk_button_label(context, "Sidebar!!!");
-
-                nk_group_end(context);
-            }
-
-            // footer 
-            snprintf(buffer1, 200, "%s[%i].footer", "theme", cfg_get("theme.active", int));
-            nk_mygui_set_window_background_color(context, cfg_get(buffer1, char *));                    // set background color
-
+            // footer context
             nk_layout_row_dynamic(context, cfg_get("window.footer.height", int), 1);
-            if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR | debug_border())){
+            nk_my_gui_footer(context, window);
 
-
-                nk_group_end(context);
-            }
 
             nk_group_end(context);
-
             nk_end(context);
         }
     }
 }
 
+
 #endif
+
+
+
+
+
 
 
 

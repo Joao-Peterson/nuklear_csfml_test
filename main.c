@@ -37,12 +37,9 @@
 int main(int argc, char **argv){
 
     /* settings */
-    
-    pcfg = doc_json_open("./cfg.json");                                             // user settings
-    if(pcfg == NULL){
-        printf("File \"cfg.json\" is missing.\n");
-        return 1;
-    }
+    if(cfg_init("./cfg.json")){
+        return 0;
+    }    
 
     /* csfml */
     sfVideoMode mode = {.height = WINDOW_HEIGHT, .width = WINDOW_WIDTH, .bitsPerPixel = 24};
@@ -63,17 +60,22 @@ int main(int argc, char **argv){
     }
 
     sfVector2u window_size = sfRenderWindow_getSize(window);
-    // glViewport(0, 0, window_size.x, window_size.y);
 
     /* nuklear */
+
+    // font
     struct nk_font_atlas *atlas;
     nk_csfml_font_stash_begin(&atlas);
-    struct nk_font *roboto = nk_font_atlas_add_default(atlas, 14, NULL);
+    struct nk_font *font = nk_font_atlas_add_from_file(atlas, cfg_get("text.font.file", char*), cfg_get("text.font.height", int), NULL);
+    if(font == NULL){
+        printf("Missing or invalid font.\n");
+        return 0;
+    }
     nk_csfml_font_stash_end();
 
+    // context
     struct nk_context *context;
-    context = nk_csfml_init(window, &roboto->handle);
-
+    context = nk_csfml_init(window, &font->handle);
     struct nk_colorf bg;
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
 
@@ -97,8 +99,6 @@ int main(int argc, char **argv){
             }
 
             nk_csfml_handle_event(&event);                                          // nuklear events
-            // sfRenderWindow_clear(window, sfBlack);
-            // sfRenderWindow_display(window);
         }
         nk_input_end(context);
         if(!running) break;
@@ -115,20 +115,6 @@ int main(int argc, char **argv){
         * back into a default state. Make sure to either save and restore or
         * reset your own state after drawing rendering the UI. */
         nk_csfml_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
-        // sfRenderWindow_display(window);
-
-        /* sfml draw (graphics module) */
-        // sfRenderWindow_pushGLStates(window);
-        
-        // struct sfCircleShape *circle = sfCircleShape_create();
-        // sfCircleShape_setRadius(circle, 300);
-        // sfCircleShape_setFillColor(circle, sfGreen);
-
-        // sfRenderWindow_drawCircleShape(window, circle, NULL);
-        // sfCircleShape_destroy(circle);
-
-        // sfRenderWindow_popGLStates(window);
-
         sfRenderWindow_display(window);
     }
 
