@@ -27,6 +27,10 @@
 #define GLOBAL_STATE_IMPLEMENTATION
 #include "inc/global_state.h"
 
+#include "inc/settings.h"
+#include "inc/cursor.h"
+#include "inc/csfml_resize.h"
+
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 #define MAX_VERTEX_BUFFER 512 * 1024
@@ -47,7 +51,7 @@ int main(int argc, char **argv){
     sfRenderWindow *window = sfRenderWindow_create(
         mode,
         global_state.window_title,
-        sfDefaultStyle,
+        0,
         NULL
     );
 
@@ -61,6 +65,7 @@ int main(int argc, char **argv){
     }
 
     sfVector2u window_size = sfRenderWindow_getSize(window);
+    sfVector2i window_pos = sfRenderWindow_getPosition(window);
 
     /* nuklear */
     // font
@@ -83,6 +88,9 @@ int main(int argc, char **argv){
     global_state.sfml_running = sfRenderWindow_isOpen(window);
     while(global_state.sfml_running){ 
         sfEvent event;
+        int clearence = cfg_get("window.resize.clearence", int);
+        int minx = cfg_get("window.resize.min.x", int);
+        int miny = cfg_get("window.resize.min.y", int);
 
         nk_input_begin(context);
         /* handle events loop */
@@ -93,14 +101,45 @@ int main(int argc, char **argv){
                     sfRenderWindow_close(window);
                 break;
 
-                case sfEvtResized:
+                case sfEvtResized:                                                  // on window resize
                     glViewport(0, 0, event.size.width, event.size.height);
+                break;
+
+                case sfEvtMouseMoved:                                               // check mouse on the sides of window for resize
+                    if(global_state.mouse_button_held.mouse_left){                  // moving while helding the mouse left down
+                        csfml_resize(window, event, global_state.cursor_pos, 
+                        &global_state.mouse_button_held.anchor.x, &global_state.mouse_button_held.anchor.y, minx, miny);
+                    }
+                    else{                                                           // checking mouse pos for resize boundaries and cursor sprite 
+                        global_state.cursor_pos = csfml_resize_scan(window, event, clearence);
+                    }
+
+                break;
+
+                case sfEvtMouseButtonPressed:
+                    switch(event.mouseButton.button){
+                        case sfMouseLeft:
+                            global_state.mouse_button_held.mouse_left = true;
+                            global_state.mouse_button_held.anchor.x = event.mouseButton.x;
+                            global_state.mouse_button_held.anchor.y = event.mouseButton.y;
+                        break;
+                    }
+                break;
+
+                case sfEvtMouseButtonReleased:
+                    switch(event.mouseButton.button){
+                        case sfMouseLeft:
+                            global_state.mouse_button_held.mouse_left = false;
+                        break;
+                    }
                 break;
             }
 
             nk_csfml_handle_event(&event);                                          // nuklear events
         }
         nk_input_end(context);
+
+        /* check if running */
         if(!global_state.sfml_running) break;
 
         /* GUI */

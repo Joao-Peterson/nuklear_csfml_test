@@ -20,7 +20,7 @@ L_FLAGS += -lcsfml-network-2
 L_FLAGS += -lcsfml-system-2
 L_FLAGS += -lcsfml-window-2
 
-SOURCES := main.c glad/src/glad.c src/doc.c src/doc_json.c src/parse_utils.c src/base64.c
+SOURCES := main.c glad/src/glad.c src/doc.c src/doc_json.c src/parse_utils.c src/base64.c src/cursor.c
 MAIN_APP := main.exe
 BUILD_DIR := build/
 

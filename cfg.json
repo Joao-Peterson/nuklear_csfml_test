@@ -41,6 +41,13 @@
         "menu_dropdown": {
             "width": 400,
             "height": 3000
+        },
+        "resize": {
+            "clearence": 7,
+            "min":{
+                "x": 200,
+                "y": 200
+            }
         }
     },
     "text": {
@@ -95,7 +102,7 @@
             "font":         "#2f3a39ff"
         },
         "size": 4,
-        "active": "olive"
+        "active": "monokai"
     },
     "debug": {
         "border": false,
