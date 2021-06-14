@@ -1,4 +1,6 @@
 #include "settings.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 // program settings, themes, font, paths, etc.
 doc *pcfg;
@@ -23,4 +25,25 @@ int cfg_init(char *cfg_filename){
     }
 
     return 0;
+}
+
+// save data
+void cfg_end(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w){
+    doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
+    doc_set(pcfg, "window.size.x", int, window_x);
+    doc_set(pcfg, "window.size.y", int, window_y);
+    doc_set(pcfg, "window.size.w", int, window_w);
+    doc_set(pcfg, "window.size.h", int, window_h);
+
+    doc_json_save(pcfg, filename);
+    doc_delete(pcfg, ".");
+}
+
+// save data
+void cfg_save(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w){
+    doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
+    doc_set(pcfg, "window.size.x", int, window_x);
+    doc_set(pcfg, "window.size.y", int, window_y);
+    doc_set(pcfg, "window.size.w", int, window_w);
+    doc_set(pcfg, "window.size.h", int, window_h);
 }

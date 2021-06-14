@@ -22,23 +22,25 @@
 #include "inc/settings.h"
 #include "inc/csfml_window_util.h"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define CFG_FILE "cfg.json"
+
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
 
 int main(int argc, char **argv){
 
     /* settings */
-    if(cfg_init("./cfg.json")){
+    if(cfg_init(CFG_FILE)){
         return 0;
     }    
     global_state.window_title = cfg_get("text.title", char*);
     global_state.topbar_title = cfg_get("text.title", char*);
 
-
     /* csfml */
-    sfVideoMode mode = {.height = WINDOW_HEIGHT, .width = WINDOW_WIDTH, .bitsPerPixel = 24};
+    sfVideoMode mode;
+    mode.height = cfg_get("window.size.h", int);
+    mode.width  = cfg_get("window.size.w", int);
+    mode.bitsPerPixel = 24;
     sfRenderWindow *window = sfRenderWindow_create(
         mode,
         global_state.window_title,
@@ -47,8 +49,6 @@ int main(int argc, char **argv){
     );
     sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
     sfRenderWindow_setActive(window, sfTrue);
-    sfVector2u window_size = sfRenderWindow_getSize(window);
-    sfVector2i window_pos = sfRenderWindow_getPosition(window);
 
 
     /* opengl viewport */
@@ -73,6 +73,17 @@ int main(int argc, char **argv){
     // textures
     global_state.texture = nk_mygui_load_texture(context, cfg_get("theme.texture_file", char*));
     nk_mygui_styles(context);
+
+    /* video settings */
+    sfVector2u window_size;
+    sfVector2i window_pos;
+    window_size.x = cfg_get("window.size.w", int);
+    window_size.y = cfg_get("window.size.h", int);
+    window_pos.x = cfg_get("window.size.x", int);
+    window_pos.y = cfg_get("window.size.y", int);
+    sfRenderWindow_setSize(window, window_size);
+    sfRenderWindow_setPosition(window, window_pos);
+    global_state.sfml_toggle_full_float = cfg_get("window.size.fullscreen", bool);
 
     /* render loop */
     global_state.sfml_running = sfRenderWindow_isOpen(window);
@@ -159,6 +170,16 @@ int main(int argc, char **argv){
             else{                                                                   // maximize window
                 global_state.sfml_toggle_full_float = false;
                 global_state.sfml_fullscreen = true;
+
+                cfg_save(
+                    CFG_FILE, 
+                    global_state.sfml_fullscreen, 
+                    window_pos.x, 
+                    window_pos.y, 
+                    window_size.y, 
+                    window_size.x
+                );                                                                  // save floating window size/pos vefore full screen, for closing on fullscreen
+                
                 csfml_window_maximize(window);
             }
         }
@@ -182,6 +203,21 @@ int main(int argc, char **argv){
         sfRenderWindow_display(window);
     }
 
+    /* save data */
+    if(!global_state.sfml_fullscreen){
+        window_size = sfRenderWindow_getSize(window);
+        window_pos  = sfRenderWindow_getPosition(window);
+    }
+    cfg_end(
+        CFG_FILE, 
+        global_state.sfml_fullscreen, 
+        window_pos.x, 
+        window_pos.y, 
+        window_size.y, 
+        window_size.x
+    );
+
+    /* exit */
     free(global_state.texture);
     nk_csfml_shutdown();
     return 0;

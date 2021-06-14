@@ -19,4 +19,10 @@ extern doc *style;
 // init configurations, return 0 if succeded, 1 if failed.
 int cfg_init(char *cfg_filename);
 
+// end settings and save cfg file
+void cfg_end(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w);
+
+// save data
+void cfg_save(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w);
+
 #endif
