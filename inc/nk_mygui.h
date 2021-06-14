@@ -1,20 +1,18 @@
 #ifndef _NK_MYGUI_HEADER_
 #define _NK_MYGUI_HEADER_
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
-
-#ifndef NK_NUKLEAR_H_
-#include <nuklear.h>
-#endif 
-
+#include <stdarg.h>
 #include <SFML/Graphics.h>
-#include "settings.h"
-#include "doc.h"
-#include "global_state.h"
+#include "glad/glad.h"
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#include <nuklear.h>
 
 /* --------------------------------------------- Macros --------------------------------------------- */
 
@@ -24,217 +22,48 @@
 // macro get nk_color from cfg file
 #define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*));
 
+/* --------------------------------------------- Structs -------------------------------------------- */
+
+typedef struct{
+    GLint image_map_opengl_id;
+    struct button_t{
+        struct nk_image minimize;
+        struct nk_image maximize;
+        struct nk_image close;
+    }button;
+}texture_t;
+
 /* --------------------------------------------- Functions ------------------------------------------ */
 
-// get a string width accordingly with the context font
-float nk_mygui_get_text_width(struct nk_context *context, char *text){
-    return nk_font_text_width(context->style.font->userdata, context->style.font->height, text, strlen(text));
-}
+// die function, idk, copied from skinning.c example on Nuklear repo
+static void die(const char *fmt, ...);
 
+// load image, copied from skinning.c example on Nuklear repo
+static GLuint image_load(const char *filename);
+
+// get a string width accordingly with the context font
+float nk_mygui_get_text_width(struct nk_context *context, char *text);
+
+// load images
+texture_t *nk_mygui_load_texture(struct nk_context *context, char *filename);
 
 // gui style
-void nk_mygui_styles(struct nk_context *context){
-    
-    // menu window / groups
-    context->style.window.background = get_color_cfg_nk("window");
-    context->style.window.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.window.padding = nk_vec2(0,0);                                   // pad between window and groups
-    context->style.window.menu_border = cfg_get("debug.border_width", int) * debug_border();
-    context->style.window.menu_padding = nk_vec2(0,0);
-    // context->style.window.min_row_height_padding = 0;
-    context->style.window.spacing = nk_vec2(0, 0);
-    context->style.window.group_padding = nk_vec2(0,0);                             // set zero padding between groups nesting
-    context->style.window.group_border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.window.group_border = cfg_get("debug.border_width", int) * debug_border();
-
-    // buttons
-    context->style.button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.button.border = cfg_get("debug.border_width", int) * debug_border();                                  
-    context->style.button.normal.type = NK_STYLE_ITEM_COLOR;
-    context->style.button.normal.data.color = get_color_cfg_nk("topbar");
-    context->style.button.active.type = NK_STYLE_ITEM_COLOR;
-    context->style.button.active.data.color = get_color_cfg_nk("selected1");
-    context->style.button.hover.type = NK_STYLE_ITEM_COLOR;
-    context->style.button.hover.data.color = get_color_cfg_nk("hover1");
-    context->style.button.text_normal = get_color_cfg_nk("font");
-    context->style.button.text_hover = get_color_cfg_nk("font");
-    context->style.button.text_active = get_color_cfg_nk("font");
-
-    // menu button
-    context->style.menu_button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.menu_button.border = cfg_get("debug.border_width", int) * debug_border();                                  
-    context->style.menu_button.normal.type = NK_STYLE_ITEM_COLOR;
-    context->style.menu_button.normal.data.color = get_color_cfg_nk("topbar");
-    context->style.menu_button.active.type = NK_STYLE_ITEM_COLOR;
-    context->style.menu_button.active.data.color = get_color_cfg_nk("selected1");
-    context->style.menu_button.hover.type = NK_STYLE_ITEM_COLOR;
-    context->style.menu_button.hover.data.color = get_color_cfg_nk("hover1");
-    context->style.menu_button.text_normal = get_color_cfg_nk("font");
-    context->style.menu_button.text_hover = get_color_cfg_nk("font");
-    context->style.menu_button.text_active = get_color_cfg_nk("font");
-
-    // contextual button, buttons inside menus
-    context->style.window.contextual_padding = nk_vec2(0,0);
-    context->style.contextual_button.border_color = nk_rgba_hex(cfg_get("debug.color", char*));
-    context->style.contextual_button.border = cfg_get("debug.border_width", int) * debug_border();
-    context->style.contextual_button.normal.type = NK_STYLE_ITEM_COLOR;
-    context->style.contextual_button.normal.data.color = get_color_cfg_nk("window");
-    context->style.contextual_button.active.type = NK_STYLE_ITEM_COLOR;
-    context->style.contextual_button.active.data.color = get_color_cfg_nk("selected1");
-    context->style.contextual_button.hover.type = NK_STYLE_ITEM_COLOR;
-    context->style.contextual_button.hover.data.color = get_color_cfg_nk("hover1");
-    context->style.contextual_button.text_normal = get_color_cfg_nk("font");
-    context->style.contextual_button.text_hover = get_color_cfg_nk("font");
-    context->style.contextual_button.text_active = get_color_cfg_nk("font");
-
-    // label
-    context->style.text.color = get_color_cfg_nk("font");
-
-    // // selectable
-    // context->style.selectable.hover.type = NK_STYLE_ITEM_COLOR;
-    // context->style.selectable.hover.data.color = get_color_cfg_nk("hover1");
-
-    // // option
-    // context->style.option.hover.type = NK_STYLE_ITEM_COLOR;
-    // context->style.option.hover.data.color = get_color_cfg_nk("hover1");
-    // context->style.option.active.type = NK_STYLE_ITEM_COLOR;
-    // context->style.option.active.data.color = get_color_cfg_nk("hover1");
-
-}
-
+void nk_mygui_styles(struct nk_context *context);
 
 // topbar
-void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
-    char buffer1[200];
-    char buffer2[200];
-    char buffer3[200];
-    
-    // topbar
-    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
-    context->style.window.fixed_background.data.color = get_color_cfg_nk("topbar");
-    if(nk_group_begin(context, "topbar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-
-        float menu_width_acc = 0;
-
-        // menus dropdown
-        nk_menubar_begin(context);
-        nk_layout_row_begin(context, NK_STATIC, cfg_get("window.topbar.height", int), cfg_get("window.topbar.size", int) + 1);
-
-        // for every menu in cfg file
-        for(int j = 0; j < doc_get(pcfg, "window.topbar.size", int); ++j){
-            snprintf(buffer1, 200, "%s[%i]", "window.topbar", j);
-            snprintf(buffer2, 200, "%s.label", buffer1);
-
-            char *topbar_field_label = doc_get(pcfg, buffer2, char *);
-
-            float menu_width = nk_mygui_get_text_width(context, topbar_field_label) + cfg_get("text.widget.padding", int);
-            menu_width_acc += menu_width;
-
-            // push the menus width into row
-            nk_layout_row_push(context, menu_width);
-
-            // callback over click on menu button
-            if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_CENTERED, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
-                nk_layout_row_dynamic(context, doc_get(pcfg, "window.topbar.height", int), 1);
-                snprintf(buffer2, 200, "%s.size", buffer1);
-
-                // for every field inside the menu
-                for(int i = 0; i < doc_get(pcfg, buffer2, int); ++i){
-                    snprintf(buffer3, 200, "%s[%i].label", buffer1, i);
-                    nk_menu_item_label(context, doc_get(pcfg, buffer3, char*), NK_TEXT_LEFT);
-                }
-                nk_menu_end(context);
-            }
-        }
-
-        // centered label 
-        nk_layout_row_push(context, nk_window_get_width(context) - 2*menu_width_acc);
-        nk_label(context, global_state.topbar_title, NK_TEXT_CENTERED);
-
-        nk_layout_row_end(context);
-        nk_menubar_end(context);
-
-        nk_group_end(context);
-    }
-}
-
+void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window);
 
 // sidebar
-void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
-
-    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
-    context->style.window.fixed_background.data.color = get_color_cfg_nk("sidebar");
-    if(nk_group_begin(context, "sidebar", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-        
-
-        nk_group_end(context);
-    }
-}
-
+void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window);
 
 // body
-void nk_mygui_body(struct nk_context *context, sfRenderWindow *window){
-    
-    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
-    context->style.window.fixed_background.data.color = get_color_cfg_nk("body");
-    if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-        
-        nk_layout_row_static(context, nk_window_get_height(context) - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), cfg_get("window.body.sidebar.width", int), 2);
-        nk_mygui_sidebar(context, window);
-
-        nk_group_end(context);
-    }
-}
-
+void nk_mygui_body(struct nk_context *context, sfRenderWindow *window);
 
 // footer
-void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window){
-    context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
-    context->style.window.fixed_background.data.color = get_color_cfg_nk("footer");
-    if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR | debug_border())){
-
-
-        nk_group_end(context);
-    }
-}
-
+void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window);
 
 // main gui routine
-void nk_mygui(struct nk_context *context, sfRenderWindow *window){
-    sfVector2u window_size = sfRenderWindow_getSize(window);
-
-    // main gui window
-    // if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT | NK_WINDOW_NO_SCROLLBAR)){  
-    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT)){  
-
-        // styles
-        nk_mygui_styles(context);
-
-        // main group inside main window
-        nk_layout_row_dynamic(context, nk_window_get_height(context), 1);
-        if(nk_group_begin(context, "main_group", NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){
-
-            float main_window_height = nk_window_get_height(context);
-
-            // topbar
-            nk_layout_row_dynamic(context, cfg_get("window.topbar.height", int), 1);
-            nk_mygui_topbar(context, window);
-
-            // body
-            nk_layout_row_dynamic(context, main_window_height - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), 1);
-            nk_mygui_body(context, window);
-
-            // footer context
-            nk_layout_row_dynamic(context, cfg_get("window.footer.height", int), 1);
-            nk_mygui_footer(context, window);
-
-
-            nk_group_end(context);
-            nk_end(context);
-        }
-    }
-}
-
+void nk_mygui(struct nk_context *context, sfRenderWindow *window);
 
 #endif
 

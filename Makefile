@@ -7,46 +7,53 @@ C_FLAGS :=
 
 I_FLAGS :=
 I_FLAGS += -I./inc
-I_FLAGS += -I./glad/include
 I_FLAGS += -IC:/msys64/mingw64/include
 I_FLAGS += -IC:/clibs/Nuklear
 
 L_FLAGS :=
 L_FLAGS += -L./lib
 L_FLAGS += -L./
+L_FLAGS += -ldoc
 L_FLAGS += -lcsfml-audio-2
 L_FLAGS += -lcsfml-graphics-2
 L_FLAGS += -lcsfml-network-2
 L_FLAGS += -lcsfml-system-2
 L_FLAGS += -lcsfml-window-2
 
-SOURCES := main.c glad/src/glad.c src/doc.c src/doc_json.c src/parse_utils.c src/base64.c src/cursor.c
+SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/global_state.c
+SOURCES += src/nk_mygui.c src/nuklear.c src/settings.c
+
+HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/global_state.h inc/nk_mygui.h inc/settings.h 
+
 MAIN_APP := main.exe
-BUILD_DIR := build/
+BUILD_DIR := build
+SRC_DIR := src
 
 # ---------------------------------------------------------------
 
 OBJS := $(SOURCES:.c=.o)
-
-OBJS_BUILD := $(addprefix $(BUILD_DIR), $(notdir $(SOURCES:.c=.o)))
+OBJS_BUILD := $(addprefix $(BUILD_DIR)/, $(OBJS))
 
 # ---------------------------------------------------------------
 
 .PHONY : build
 
 build : C_FLAGS += -g
-build : $(MAIN_APP)
+build : build_dir $(MAIN_APP)
 
 release : C_FLAGS += -O3
-release : $(MAIN_APP)
+release : build_dir $(MAIN_APP)
 
-$(MAIN_APP) : $(OBJS) $(RES_OUT)
-	$(CC) $(L_FLAGS) $(OBJS_BUILD) $(RES_OUT) -o $@
+$(MAIN_APP) : $(HEADERS) $(OBJS_BUILD)
+	$(CC) $(OBJS_BUILD) $(L_FLAGS) -o $@
 
-%.o : %.c
-	$(CC) $(C_FLAGS) $(I_FLAGS) -c $< -o $(addprefix $(BUILD_DIR), $(notdir $@))
+$(BUILD_DIR)/%.o : %.c
+	$(CC) $(C_FLAGS) $(I_FLAGS) -c $< -o $@
+
+build_dir :
+	@mkdir -p $(BUILD_DIR) 
+	@mkdir -p $(BUILD_DIR)/$(SRC_DIR) 
 
 clear : 
+	rm -f -r $(BUILD_DIR)
 	rm -f $(MAIN_APP)
-	rm -f $(OBJS_BUILD)
-	rm -f $(RES_OUT)

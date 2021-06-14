@@ -5,31 +5,22 @@
 
 #include <SFML/Graphics.h>
 
-#define NK_IMPLEMENTATION
-#define NK_PRIVATE
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
 #include <nuklear.h>
 
-#define NK_CSFML_IMPLEMENTATION
 #include "inc/nuklear_csfml.h"
-
-#include "inc/settings.h"
 #include "inc/nk_mygui.h"
+#include "inc/settings.h"
 #include "inc/doc.h"
 #include "inc/doc_json.h"
-
-#define GLOBAL_STATE_IMPLEMENTATION
 #include "inc/global_state.h"
-
 #include "inc/settings.h"
-#include "inc/cursor.h"
-#include "inc/csfml_resize.h"
+#include "inc/csfml_window_util.h"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -42,9 +33,9 @@ int main(int argc, char **argv){
     if(cfg_init("./cfg.json")){
         return 0;
     }    
-
     global_state.window_title = cfg_get("text.title", char*);
     global_state.topbar_title = cfg_get("text.title", char*);
+
 
     /* csfml */
     sfVideoMode mode = {.height = WINDOW_HEIGHT, .width = WINDOW_WIDTH, .bitsPerPixel = 24};
@@ -54,9 +45,11 @@ int main(int argc, char **argv){
         0,
         NULL
     );
-
     sfRenderWindow_setVerticalSyncEnabled(window, sfTrue);
     sfRenderWindow_setActive(window, sfTrue);
+    sfVector2u window_size = sfRenderWindow_getSize(window);
+    sfVector2i window_pos = sfRenderWindow_getPosition(window);
+
 
     /* opengl viewport */
     if(!gladLoadGL()) {                                                             // load opengl extensions
@@ -64,13 +57,10 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    sfVector2u window_size = sfRenderWindow_getSize(window);
-    sfVector2i window_pos = sfRenderWindow_getPosition(window);
 
     /* nuklear */
-    // font
     struct nk_font_atlas *atlas;
-    nk_csfml_font_stash_begin(&atlas);
+    nk_csfml_font_stash_begin(&atlas);                                              // fonts
     struct nk_font *font = nk_font_atlas_add_from_file(atlas, cfg_get("text.font.file", char*), cfg_get("text.font.height", int), NULL);
     if(font == NULL){
         printf("Missing or invalid font.\n");
@@ -78,19 +68,20 @@ int main(int argc, char **argv){
     }
     nk_csfml_font_stash_end();
 
-    // context
-    struct nk_context *context;
+    struct nk_context *context;                                                     // nuklear context
     context = nk_csfml_init(window, &font->handle);
-    struct nk_colorf bg;
-    bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
+    // textures
+    global_state.texture = nk_mygui_load_texture(context, cfg_get("theme.texture_file", char*));
+    nk_mygui_styles(context);
 
     /* render loop */
     global_state.sfml_running = sfRenderWindow_isOpen(window);
+    int clearence = cfg_get("window.resize.clearence", int);
+    int minx = cfg_get("window.resize.min.x", int);
+    int miny = cfg_get("window.resize.min.y", int);
+    int topbar_height = cfg_get("window.topbar.height", int);
     while(global_state.sfml_running){ 
         sfEvent event;
-        int clearence = cfg_get("window.resize.clearence", int);
-        int minx = cfg_get("window.resize.min.x", int);
-        int miny = cfg_get("window.resize.min.y", int);
 
         nk_input_begin(context);
         /* handle events loop */
@@ -106,14 +97,30 @@ int main(int argc, char **argv){
                 break;
 
                 case sfEvtMouseMoved:                                               // check mouse on the sides of window for resize
-                    if(global_state.mouse_button_held.mouse_left){                  // moving while helding the mouse left down
-                        csfml_resize(window, event, global_state.cursor_pos, 
-                        &global_state.mouse_button_held.anchor.x, &global_state.mouse_button_held.anchor.y, minx, miny);
+                    if(!global_state.sfml_fullscreen){                              // only apply window transform logic when not in fulscreen/maximized mode
+                        if(global_state.mouse_button_held.mouse_left){              // moving while helding the mouse left down
+                            csfml_window_transform(
+                                window, 
+                                event, 
+                                global_state.cursor_pos, 
+                                &global_state.mouse_button_held.anchor.x, 
+                                &global_state.mouse_button_held.anchor.y, 
+                                minx, 
+                                miny
+                            );
+                        }
+                        else{                                                       // checking mouse pos for resize boundaries and cursor sprite 
+                            global_state.cursor_pos = csfml_window_scan(
+                                window, 
+                                event, 
+                                clearence,
+                                global_state.topbar_menus_width, 
+                                0, 
+                                global_state.topbar_menus_width + global_state.topbar_title_width, 
+                                topbar_height
+                            );
+                        }
                     }
-                    else{                                                           // checking mouse pos for resize boundaries and cursor sprite 
-                        global_state.cursor_pos = csfml_resize_scan(window, event, clearence);
-                    }
-
                 break;
 
                 case sfEvtMouseButtonPressed:
@@ -139,8 +146,26 @@ int main(int argc, char **argv){
         }
         nk_input_end(context);
 
-        /* check if running */
-        if(!global_state.sfml_running) break;
+        /* check global state flags */
+        if(!global_state.sfml_running) break;                                       // close program
+
+        if(global_state.sfml_toggle_full_float){                                    // toggle window float/maximize
+
+            if(global_state.sfml_fullscreen){                                       // float window
+                global_state.sfml_toggle_full_float = false;
+                global_state.sfml_fullscreen = false;
+                csfml_window_float(window);
+            }
+            else{                                                                   // maximize window
+                global_state.sfml_toggle_full_float = false;
+                global_state.sfml_fullscreen = true;
+                csfml_window_maximize(window);
+            }
+        }
+        if(global_state.sfml_minimize_flag){                                        // minimize window
+            global_state.sfml_minimize_flag = false;
+            csfml_window_minimize(window);
+        }
 
         /* GUI */
         nk_mygui(context, window);
@@ -148,7 +173,7 @@ int main(int argc, char **argv){
         /* Draw nuklear (opengl) */
         sfRenderWindow_setActive(window, sfTrue);
         glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(bg.r, bg.g, bg.b, bg.a);
+        glClearColor(0, 0, 0, 255);
         /* IMPORTANT: `nk_sfml_render` modifies some global OpenGL state
         * with blending, scissor, face culling and depth test and defaults everything
         * back into a default state. Make sure to either save and restore or
@@ -157,6 +182,7 @@ int main(int argc, char **argv){
         sfRenderWindow_display(window);
     }
 
+    free(global_state.texture);
     nk_csfml_shutdown();
     return 0;
 }

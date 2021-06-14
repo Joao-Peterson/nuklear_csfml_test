@@ -28,7 +28,10 @@
             "view": null,
             "help": null,
             "size": 2,
-            "height": 26
+            "height": 26,
+            "buttons": {
+                "width": 45
+            }
         },
         "body": {
             "sidebar": {
@@ -43,7 +46,7 @@
             "height": 3000
         },
         "resize": {
-            "clearence": 7,
+            "clearence": 8,
             "min":{
                 "x": 200,
                 "y": 200
@@ -102,11 +105,12 @@
             "font":         "#2f3a39ff"
         },
         "size": 4,
-        "active": "monokai"
+        "active": "olive",
+        "texture_file": "assets/olive.png"
     },
     "debug": {
         "border": false,
         "color": "#ffFFffff",
-        "border_width": 3
+        "border_width": 0
     }
 }

@@ -1,9 +1,19 @@
 #ifndef NK_CSFML_H_
 #define NK_CSFML_H_
 
-#include "../glad/include/glad/glad.h"  
+#include "glad/glad.h"  
 #include <assert.h>
 #include <SFML/Graphics.h>
+
+#ifndef NK_NUKLEAR_H_
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#include <nuklear.h>
+#endif
 
 NK_API struct nk_context   *nk_csfml_init(sfRenderWindow *window, const struct nk_user_font *font);
 NK_API void                 nk_csfml_font_stash_begin(struct nk_font_atlas **atlas);
@@ -41,7 +51,7 @@ struct nk_csfml_vertex {
     nk_byte col[4];
 };
 
-static struct nk_csfml{
+struct nk_csfml{
     sfRenderWindow *window;
     struct nk_csfml_device ogl;
     struct nk_context ctx;
