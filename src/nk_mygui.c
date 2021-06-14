@@ -192,10 +192,13 @@ void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
         // buttons
         nk_layout_row_push(context, button_width);
         if(nk_button_image(context, global_state.texture->button.minimize)){        // minimize
-            global_state.sfml_minimize_flag = true;
+            global_state.sfml_window_mode_flag = window_mode_minimized;
         }
         if(nk_button_image(context, global_state.texture->button.maximize)){        // maximize
-            global_state.sfml_toggle_full_float = true;
+            if(global_state.sfml_window_mode == window_mode_maximized || global_state.sfml_window_mode == window_mode_fullscreen)
+                global_state.sfml_window_mode_flag = window_mode_float;
+            else
+                global_state.sfml_window_mode_flag = window_mode_maximized;
         }
         if(nk_button_image(context, global_state.texture->button.close)){           // close
             global_state.sfml_running = false;

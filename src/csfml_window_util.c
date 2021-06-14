@@ -150,7 +150,7 @@ cursor_pos_enum csfml_window_scan(sfRenderWindow *window, sfEvent event, int bor
 }
 
 // resize the window if the conditions are met and in the desired direction
-void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_enum resize_dir, int *drag_anchor_x, int *drag_anchor_y, int clip_x, int clip_y){
+void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_enum resize_dir, sfVector2i *drag_anchor, int clip_x, int clip_y){
     sfVector2u window_size = sfRenderWindow_getSize(window);
     sfVector2i window_pos  = sfRenderWindow_getPosition(window);
     struct {int x; int y;} delta;
@@ -158,100 +158,100 @@ void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_en
     switch(resize_dir){
         case cursor_pos_border_n:
             csfml_cursor_set(cursor_resize_vertical);
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             delta.y /= 2;
             window_size.y += delta.y;
             window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y / 2;
+            drag_anchor->y = event.mouseMove.y / 2;
         break;
 
         case cursor_pos_border_s:
             csfml_cursor_set(cursor_resize_vertical);
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             // delta.y /= 2;
             window_size.y -= delta.y;
             // window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y;
+            drag_anchor->y = event.mouseMove.y;
         break;
 
         case cursor_pos_border_w:
             csfml_cursor_set(cursor_resize_horizontal);
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             delta.x /= 2;
             window_size.x += delta.x;
             window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x / 2;
+            drag_anchor->x = event.mouseMove.x / 2;
         break;
 
         case cursor_pos_border_e:
             csfml_cursor_set(cursor_resize_horizontal);
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             // delta.x /= 2;
             window_size.x -= delta.x;
             // window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x;
+            drag_anchor->x = event.mouseMove.x;
         break;
 
         case cursor_pos_border_nw:
             csfml_cursor_set(cursor_resize_135_deg);
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             delta.x /= 2;
             window_size.x += delta.x;
             window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x / 2;
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            drag_anchor->x = event.mouseMove.x / 2;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             delta.y /= 2;
             window_size.y += delta.y;
             window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y / 2;
+            drag_anchor->y = event.mouseMove.y / 2;
         break;
 
         case cursor_pos_border_ne:
             csfml_cursor_set(cursor_resize_45_deg);
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             delta.y /= 2;
             window_size.y += delta.y;
             window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y / 2;
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            drag_anchor->y = event.mouseMove.y / 2;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             // delta.x /= 2;
             window_size.x -= delta.x;
             // window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x;
+            drag_anchor->x = event.mouseMove.x;
         break;
 
         case cursor_pos_border_sw:
             csfml_cursor_set(cursor_resize_45_deg);
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             // delta.y /= 2;
             window_size.y -= delta.y;
             // window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y;
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            drag_anchor->y = event.mouseMove.y;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             delta.x /= 2;
             window_size.x += delta.x;
             window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x / 2;
+            drag_anchor->x = event.mouseMove.x / 2;
         break;
 
         case cursor_pos_border_se:
             csfml_cursor_set(cursor_resize_135_deg);
-            delta.y = *drag_anchor_y - event.mouseMove.y;
+            delta.y = drag_anchor->y - event.mouseMove.y;
             // delta.y /= 2;
             window_size.y -= delta.y;
             // window_pos.y -= delta.y;
-            *drag_anchor_y = event.mouseMove.y;
-            delta.x = *drag_anchor_x - event.mouseMove.x;
+            drag_anchor->y = event.mouseMove.y;
+            delta.x = drag_anchor->x - event.mouseMove.x;
             // delta.x /= 2;
             window_size.x -= delta.x;
             // window_pos.x -= delta.x;
-            *drag_anchor_x = event.mouseMove.x;
+            drag_anchor->x = event.mouseMove.x;
         break;
 
         case cursor_pos_topbar:
             csfml_cursor_set(cursor_move);
-            window_pos.x -= (*drag_anchor_x - event.mouseMove.x);
-            window_pos.y -= (*drag_anchor_y - event.mouseMove.y);
+            window_pos.x -= (drag_anchor->x - event.mouseMove.x);
+            window_pos.y -= (drag_anchor->y - event.mouseMove.y);
         break;
 
         default:
@@ -266,14 +266,25 @@ void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_en
     sfRenderWindow_setSize(window, window_size);
 }
 
+// fullscreen window
+void csfml_window_fullscreen(sfRenderWindow *window){
+    ShowWindow(sfRenderWindow_getSystemHandle(window), SW_SHOWMAXIMIZED);
+}
+
 // maximize window
 void csfml_window_maximize(sfRenderWindow *window){
-    ShowWindow(sfRenderWindow_getSystemHandle(window), SW_SHOWMAXIMIZED);
+    RECT desktop;
+    const HWND hDesktop = GetDesktopWindow();
+    GetWindowRect(hDesktop, &desktop);
+    sfVector2u window_size;
+    sfVector2i window_pos;
+    sfRenderWindow_setSize(window, (sfVector2u){.x = desktop.right, .y = desktop.bottom});    
+    sfRenderWindow_setPosition(window, (sfVector2i){.x = 0, .y = 0});
 }
 
 // minimize window
 void csfml_window_minimize(sfRenderWindow *window){
-    ShowWindow(sfRenderWindow_getSystemHandle(window), SW_SHOWMINIMIZED);
+    ShowWindow(sfRenderWindow_getSystemHandle(window), SW_MINIMIZE);
 }
 
 // float window

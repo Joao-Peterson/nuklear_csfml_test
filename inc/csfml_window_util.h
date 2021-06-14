@@ -13,6 +13,14 @@
 
 /* ----------------------------------------- Enumerators ------------------------------------ */
 
+// window mode
+typedef enum{
+    window_mode_minimized = 1,
+    window_mode_maximized,
+    window_mode_float,
+    window_mode_fullscreen
+}window_mode_enum;
+
 // types of cursors
 typedef enum{
     cursor_arrow,
@@ -50,7 +58,10 @@ int csfml_cursor_set(cursor_enum cursor);
 cursor_pos_enum csfml_window_scan(sfRenderWindow *window, sfEvent event, int border_clearence, int topbar_x0, int topbar_y0, int topbar_x1, int topbar_y1);
 
 // transfor the window position and size if the conditions are met
-void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_enum resize_dir, int *drag_anchor_x, int *drag_anchor_y, int clip_x, int clip_y);
+void csfml_window_transform(sfRenderWindow *window, sfEvent event, cursor_pos_enum resize_dir, sfVector2i *drag_anchor, int clip_x, int clip_y);
+
+// fullscreen window
+void csfml_window_fullscreen(sfRenderWindow *window);
 
 // minimize window
 void csfml_window_minimize(sfRenderWindow *window);

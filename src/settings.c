@@ -27,9 +27,10 @@ int cfg_init(char *cfg_filename){
     return 0;
 }
 
-// save data
-void cfg_end(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w){
+// save and terminate settings
+void cfg_end(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w){
     doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
+    doc_set(pcfg, "window.size.maximized", bool, window_maximized);
     doc_set(pcfg, "window.size.x", int, window_x);
     doc_set(pcfg, "window.size.y", int, window_y);
     doc_set(pcfg, "window.size.w", int, window_w);
@@ -39,9 +40,10 @@ void cfg_end(char *filename, bool window_fullscreen, int window_x, int window_y,
     doc_delete(pcfg, ".");
 }
 
-// save data
-void cfg_save(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w){
+// save settings
+void cfg_save(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w){
     doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
+    doc_set(pcfg, "window.size.maximized", bool, window_maximized);
     doc_set(pcfg, "window.size.x", int, window_x);
     doc_set(pcfg, "window.size.y", int, window_y);
     doc_set(pcfg, "window.size.w", int, window_w);

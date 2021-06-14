@@ -2,30 +2,24 @@
 #define _GLOBAL_STATE_HEADER_
 
 #include <stdbool.h>
+#include <SFML/Graphics.h>
 #include "csfml_window_util.h"
 #include "nk_mygui.h"
 
 /* ----------------------------------------- Structs ---------------------------------------- */
 
-// simple point struct
-typedef struct{
-    int x;
-    int y;
-}mouse_pos_t;
-
 // global state
 typedef struct{
     bool sfml_running;                      /**< state of SFML window, true if running, when set to false the window is killed*/
-    bool sfml_toggle_full_float;            /**< flags SFML to maximize/float the window*/
-    bool sfml_minimize_flag;                /**< flags SFML to inimize the window*/
-    bool sfml_fullscreen;                   /**< indicates that the window is in fullscreen mode*/
+    window_mode_enum sfml_window_mode_flag; /**< flags SFML to change the window mode based on window_mode_enum enumerator*/
+    window_mode_enum sfml_window_mode;      /**< indicates what mode/state the window is based on window_mode_enum enumerator*/
     char *window_title;                     /**< the title of the SFML window*/
     char *topbar_title;                     /**< the title to be displayed on the topbar of the nuklear window*/
     int topbar_menus_width;                 /**< width of the topbar menus, after wich the title coes on the x direction*/
     int topbar_title_width;                 /**< width of the topbar title, where the move cursor/cmd should be possible*/
     cursor_pos_enum cursor_pos;             /**< the cursor position based on SFML event mouse_moved, used rule calls on mouse clicks*/
     struct mouse_button_held_t{             /**< stores the state of mouse buttons, 1 if held down*/
-        mouse_pos_t anchor;
+        sfVector2i anchor;                      /**< stores the postion where the cursor has last clicked */
         bool mouse_left;       
         bool mouse_right;      
         bool mouse_middle;       

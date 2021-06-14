@@ -14,12 +14,14 @@
 #define NK_INCLUDE_FONT_BAKING
 #include <nuklear.h>
 
+#include "settings.h"
+
 /* --------------------------------------------- Macros --------------------------------------------- */
 
 // window/group debug border macro
 #define debug_border() ((cfg_get("debug.border", bool)) ? NK_WINDOW_BORDER : false)
 
-// macro get nk_color from cfg file
+// macro get nk_color from cfg file. Ex: get_color_cfg_nk("body")
 #define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*));
 
 /* --------------------------------------------- Structs -------------------------------------------- */

@@ -20,9 +20,9 @@ extern doc *style;
 int cfg_init(char *cfg_filename);
 
 // end settings and save cfg file
-void cfg_end(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w);
+void cfg_end(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w);
 
 // save data
-void cfg_save(char *filename, bool window_fullscreen, int window_x, int window_y, int window_h, int window_w);
+void cfg_save(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w);
 
 #endif
