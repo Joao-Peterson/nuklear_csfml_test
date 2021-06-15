@@ -38,22 +38,10 @@ typedef struct{
 /* --------------------------------------------- Functions ------------------------------------------ */
 
 // load images
-texture_t *nk_mygui_load_texture(struct nk_context *context, char *filename);
+texture_t *mygui_load_texture(struct nk_context *context, char *filename);
 
 // gui style
-void nk_mygui_styles(struct nk_context *context);
-
-// topbar
-void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window);
-
-// sidebar
-void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window);
-
-// body
-void nk_mygui_body(struct nk_context *context, sfRenderWindow *window);
-
-// footer
-void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window);
+void mygui_styles(struct nk_context *context);
 
 // main gui routine
 void nk_mygui(struct nk_context *context, sfRenderWindow *window);

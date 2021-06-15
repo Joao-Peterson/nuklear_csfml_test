@@ -24,6 +24,7 @@ SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/global_
 SOURCES += src/nk_mygui.c src/nuklear.c src/settings.c
 
 HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/global_state.h inc/nk_mygui.h inc/settings.h 
+HEADERS += inc/mygui_windows.h inc/mygui_widgets.h
 
 MAIN_APP := main.exe
 BUILD_DIR := build

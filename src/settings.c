@@ -6,20 +6,24 @@
 doc *pcfg;
 
 // doc pointer to theme style
-doc *style;
+doc *settings_style;
+
+// the filename
+char *filename;
 
 // init configurations, return 0 if succeded, 1 if failed.
 int cfg_init(char *cfg_filename){
-    pcfg = doc_json_open("./cfg.json");                                             // user settings
+    filename = cfg_filename;
+    pcfg = doc_json_open(cfg_filename);                                             // user settings
     if(pcfg == NULL){
-        printf("File \"cfg.json\" is missing.\n");
+        printf("File \"%s\" is missing.\n", cfg_filename);
         return 1;
     }
 
     char theme[200];
     snprintf(theme, 200, "theme.%s", doc_get(pcfg, "theme.active", char*));
-    style = doc_get_ptr(pcfg, theme);
-    if(style == NULL){
+    settings_style = doc_get_ptr(pcfg, theme);
+    if(settings_style == NULL){
         printf("Invalid style.\n");
         return 1;
     }
@@ -28,24 +32,7 @@ int cfg_init(char *cfg_filename){
 }
 
 // save and terminate settings
-void cfg_end(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w){
-    doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
-    doc_set(pcfg, "window.size.maximized", bool, window_maximized);
-    doc_set(pcfg, "window.size.x", int, window_x);
-    doc_set(pcfg, "window.size.y", int, window_y);
-    doc_set(pcfg, "window.size.w", int, window_w);
-    doc_set(pcfg, "window.size.h", int, window_h);
-
+void cfg_end(void){
     doc_json_save(pcfg, filename);
     doc_delete(pcfg, ".");
-}
-
-// save settings
-void cfg_save(char *filename, bool window_fullscreen, bool window_maximized, int window_x, int window_y, int window_h, int window_w){
-    doc_set(pcfg, "window.size.fullscreen", bool, window_fullscreen);
-    doc_set(pcfg, "window.size.maximized", bool, window_maximized);
-    doc_set(pcfg, "window.size.x", int, window_x);
-    doc_set(pcfg, "window.size.y", int, window_y);
-    doc_set(pcfg, "window.size.w", int, window_w);
-    doc_set(pcfg, "window.size.h", int, window_h);
 }

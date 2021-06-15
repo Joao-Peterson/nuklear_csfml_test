@@ -7,7 +7,10 @@
 #include "doc.h"
 #include "global_state.h"
 #include "stb_image.h"
+#include "mygui_widgets.h"
+#include "mygui_windows.h"
 
+/* --------------------------------------------- Functions ------------------------------------------ */
 
 // die function, idk, copied from skinning.c example on Nuklear repo
 static void die(const char *fmt, ...){
@@ -47,7 +50,7 @@ float nk_mygui_get_text_width(struct nk_context *context, char *text){
 
 
 // load images
-texture_t *nk_mygui_load_texture(struct nk_context *context, char *filename){
+texture_t *mygui_load_texture(struct nk_context *context, char *filename){
     texture_t *texture = (texture_t*)calloc(1, sizeof(texture_t)); 
     
     glEnable(GL_TEXTURE_2D);    
@@ -61,7 +64,7 @@ texture_t *nk_mygui_load_texture(struct nk_context *context, char *filename){
 
 
 // gui style
-void nk_mygui_styles(struct nk_context *context){
+void mygui_styles(struct nk_context *context){
     
     // menu window / groups
     context->style.window.background = get_color_cfg_nk("window");
@@ -121,6 +124,11 @@ void nk_mygui_styles(struct nk_context *context){
     // label
     context->style.text.color = get_color_cfg_nk("font");
 
+    context->style.window.header.close_button.active.type = NK_STYLE_ITEM_IMAGE;
+    context->style.window.header.close_button.active.data.image = global_state.texture->button.close;
+    context->style.window.header.minimize_button.active.type = NK_STYLE_ITEM_IMAGE;
+    context->style.window.header.minimize_button.active.data.image = global_state.texture->button.minimize;
+
     // // selectable
     // context->style.selectable.hover.type = NK_STYLE_ITEM_COLOR;
     // context->style.selectable.hover.data.color = get_color_cfg_nk("hover1");
@@ -135,7 +143,7 @@ void nk_mygui_styles(struct nk_context *context){
 
 
 // topbar
-void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
+void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
     char buffer1[200];
     char buffer2[200];
     char buffer3[200];
@@ -169,7 +177,7 @@ void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
             // push the menus width into row
             nk_layout_row_push(context, menu_width);
 
-            // callback over click on menu button
+            // callback over click on menu button, to open the lsit with the options inside
             if(nk_menu_begin_label(context, topbar_field_label, NK_TEXT_CENTERED, nk_vec2(cfg_get("window.menu_dropdown.width", int), cfg_get("window.menu_dropdown.height", int)))){
                 nk_layout_row_dynamic(context, topbar_height, 1);
                 snprintf(buffer2, 200, "%s.size", buffer1);
@@ -177,7 +185,25 @@ void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
                 // for every field inside the menu
                 for(int i = 0; i < doc_get(pcfg, buffer2, int); ++i){
                     snprintf(buffer3, 200, "%s[%i].label", buffer1, i);
-                    nk_menu_item_label(context, doc_get(pcfg, buffer3, char*), NK_TEXT_LEFT);
+                    
+                    /**
+                     * Every menu item inside every menu is iterative from the objects inside the config json file,
+                     * therefore knowing wich one is wich is hard since some kind of string compare chould happen every click trought
+                     * all menu items of all menus. The solutions is a index, a product of the menu index plus one and the menu item index plus one,
+                     * this way every menu item can be mapped to a unique window/widget/action/etc... . EX: [0] menu and [1] menu item have a unique index of:
+                     * (0+1)*(1+1) = 2. It is the same as if we were counting one by one in order starting at 1.  
+                     */
+
+                    // callback for every options inside the menu
+                    if(nk_menu_item_label(context, doc_get(pcfg, buffer3, char*), NK_TEXT_LEFT)){
+                        int index = (i+1)*(j+1);
+
+                        if(index == cfg_get("windows.settings.visual.index", int)){                     // appearance
+                            
+                            
+                            nk_window_show(context, cfg_get("windows.settings.visual.label", char*), NK_SHOWN);
+                        }
+                    }
                 }
                 nk_menu_end(context);
             }
@@ -213,7 +239,7 @@ void nk_mygui_topbar(struct nk_context *context, sfRenderWindow *window){
 
 
 // sidebar
-void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
+void mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
 
     context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
     context->style.window.fixed_background.data.color = get_color_cfg_nk("sidebar");
@@ -226,14 +252,14 @@ void nk_mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
 
 
 // body
-void nk_mygui_body(struct nk_context *context, sfRenderWindow *window){
+void mygui_body(struct nk_context *context, sfRenderWindow *window){
     
     context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
     context->style.window.fixed_background.data.color = get_color_cfg_nk("body");
     if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR | debug_border())){
         
         nk_layout_row_static(context, nk_window_get_height(context) - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), cfg_get("window.body.sidebar.width", int), 2);
-        nk_mygui_sidebar(context, window);
+        mygui_sidebar(context, window);
 
         nk_group_end(context);
     }
@@ -241,7 +267,7 @@ void nk_mygui_body(struct nk_context *context, sfRenderWindow *window){
 
 
 // footer
-void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window){
+void mygui_footer(struct nk_context *context, sfRenderWindow *window){
     context->style.window.fixed_background.type = NK_STYLE_ITEM_COLOR;
     context->style.window.fixed_background.data.color = get_color_cfg_nk("footer");
     if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR | debug_border())){
@@ -252,37 +278,40 @@ void nk_mygui_footer(struct nk_context *context, sfRenderWindow *window){
 }
 
 
+/* --------------------------------------------- Public functions ----------------------------------- */
+
 // main gui routine
 void nk_mygui(struct nk_context *context, sfRenderWindow *window){
     sfVector2u window_size = sfRenderWindow_getSize(window);
 
     // main gui window
-    // if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT | NK_WINDOW_NO_SCROLLBAR)){  
-    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND | NK_WINDOW_NO_INPUT)){  
+    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){  
 
         // main group inside main window
         nk_layout_row_dynamic(context, nk_window_get_height(context), 1);
-        if(nk_group_begin(context, "main_group", NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){
+        if(nk_group_begin(context, "main_group", NK_WINDOW_NO_SCROLLBAR)){
 
             float main_window_height = nk_window_get_height(context);
 
             // topbar
             nk_layout_row_dynamic(context, cfg_get("window.topbar.height", int), 1);
-            nk_mygui_topbar(context, window);
+            mygui_topbar(context, window);
 
             // body
             nk_layout_row_dynamic(context, main_window_height - cfg_get("window.topbar.height", int) - cfg_get("window.footer.height", int), 1);
-            nk_mygui_body(context, window);
+            mygui_body(context, window);
 
             // footer context
             nk_layout_row_dynamic(context, cfg_get("window.footer.height", int), 1);
-            nk_mygui_footer(context, window);
+            mygui_footer(context, window);
 
-
-            nk_group_end(context);
-            nk_end(context);
         }
+        nk_group_end(context);
     }
+    nk_end(context);
+    
+    // floating windows
+    mygui_example(context, window);
 }
 
 

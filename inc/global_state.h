@@ -11,6 +11,7 @@
 // global state
 typedef struct{
     bool sfml_running;                      /**< state of SFML window, true if running, when set to false the window is killed*/
+    bool first_render_loop;                 /**< true if first time of render loop*/
     window_mode_enum sfml_window_mode_flag; /**< flags SFML to change the window mode based on window_mode_enum enumerator*/
     window_mode_enum sfml_window_mode;      /**< indicates what mode/state the window is based on window_mode_enum enumerator*/
     char *window_title;                     /**< the title of the SFML window*/

@@ -71,11 +71,11 @@ int main(int argc, char **argv){
 
     struct nk_context *context;                                                     // nuklear context
     context = nk_csfml_init(window, &font->handle);
-    // textures
-    global_state.texture = nk_mygui_load_texture(context, cfg_get("theme.texture_file", char*));
-    nk_mygui_styles(context);
-
+    
     /* video settings */
+    // textures
+    global_state.texture = mygui_load_texture(context, style_get("texture_file", char*));
+    mygui_styles(context);
     sfVector2u window_size;
     sfVector2i window_pos;
     window_size.x = cfg_get("window.size.w", int);
@@ -99,6 +99,7 @@ int main(int argc, char **argv){
     int minx = cfg_get("window.resize.min.x", int);
     int miny = cfg_get("window.resize.min.y", int);
     int topbar_height = cfg_get("window.topbar.height", int);
+    global_state.first_render_loop = true;
     while(global_state.sfml_running){ 
         sfEvent event;
 
@@ -143,7 +144,7 @@ int main(int argc, char **argv){
                 break;
 
                 case sfEvtMouseButtonPressed:
-                    switch(event.mouseButton.button){
+                    switch(event.mouseButton.button){                               
                         case sfMouseLeft:
                             global_state.mouse_button_held.mouse_left = true;
                             global_state.mouse_button_held.anchor.x = event.mouseButton.x;
@@ -160,8 +161,16 @@ int main(int argc, char **argv){
                     }
                 break;
 
+                case sfEvtLostFocus:                                                // reset held mouse buttons if they fly off the window
+                    global_state.mouse_button_held.mouse_left = false;
+                    global_state.mouse_button_held.mouse_right = false;
+                    global_state.mouse_button_held.mouse_middle = false;
+                    global_state.mouse_button_held.mouse_xButton1 = false;
+                    global_state.mouse_button_held.mouse_xButton2 = false;
+                break;
+
                 case sfEvtKeyPressed:
-                    if(event.key.code == fullscreen_key){
+                    if(event.key.code == fullscreen_key){                           // fullscreen key
                         if(global_state.sfml_window_mode == window_mode_fullscreen){
                             global_state.sfml_window_mode_flag = window_mode_float;
                         }
@@ -225,15 +234,13 @@ int main(int argc, char **argv){
                         window_size = sfRenderWindow_getSize(window);
                         window_pos = sfRenderWindow_getPosition(window);
 
-                        cfg_save(
-                            CFG_FILE, 
-                            ((global_state.sfml_window_mode == window_mode_fullscreen) ? true : false), 
-                            ((global_state.sfml_window_mode == window_mode_maximized) ? true : false), 
-                            window_pos.x, 
-                            window_pos.y, 
-                            window_size.y, 
-                            window_size.x
-                        );                                                          // save floating window size/pos before going fullscreen/maximized
+                        cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
+                        cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
+                        cfg_set("window.size.x", int, window_pos.x);
+                        cfg_set("window.size.y", int, window_pos.y);
+                        cfg_set("window.size.w", int, window_size.x);
+                        cfg_set("window.size.h", int, window_size.y);                                                        // save floating window size/pos before going fullscreen/maximized
+                                                    // save floating window size/pos before going fullscreen/maximized
                     break;
                 }
 
@@ -250,15 +257,12 @@ int main(int argc, char **argv){
                         window_size = sfRenderWindow_getSize(window);
                         window_pos = sfRenderWindow_getPosition(window);
 
-                        cfg_save(
-                            CFG_FILE, 
-                            ((global_state.sfml_window_mode == window_mode_fullscreen) ? true : false), 
-                            ((global_state.sfml_window_mode == window_mode_maximized) ? true : false), 
-                            window_pos.x, 
-                            window_pos.y, 
-                            window_size.y, 
-                            window_size.x
-                        );                                                          // save floating window size/pos before going fullscreen/maximized
+                        cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
+                        cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
+                        cfg_set("window.size.x", int, window_pos.x);
+                        cfg_set("window.size.y", int, window_pos.y);
+                        cfg_set("window.size.w", int, window_size.x);
+                        cfg_set("window.size.h", int, window_size.y);                                                        // save floating window size/pos before going fullscreen/maximized
                     break;
                 }
 
@@ -284,6 +288,7 @@ int main(int argc, char **argv){
         * reset your own state after drawing rendering the UI. */
         nk_csfml_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
         sfRenderWindow_display(window);
+        global_state.first_render_loop = false;
     }
 
     /* save data */
@@ -292,15 +297,14 @@ int main(int argc, char **argv){
         window_pos  = sfRenderWindow_getPosition(window);
     }
 
-    cfg_end(
-        CFG_FILE, 
-        ((global_state.sfml_window_mode == window_mode_fullscreen) ? true : false), 
-        ((global_state.sfml_window_mode == window_mode_maximized) ? true : false), 
-        window_pos.x, 
-        window_pos.y, 
-        window_size.y, 
-        window_size.x
-    );    
+    cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
+    cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
+    cfg_set("window.size.x", int, window_pos.x);
+    cfg_set("window.size.y", int, window_pos.y);
+    cfg_set("window.size.w", int, window_size.x);
+    cfg_set("window.size.h", int, window_size.y);
+
+    cfg_end();    
 
     /* exit */
     free(global_state.texture);
