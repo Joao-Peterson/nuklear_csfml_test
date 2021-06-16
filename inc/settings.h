@@ -30,6 +30,7 @@ extern doc *settings_style;
     } \
     *(type*)((void*)__check_obj_is_value(doc_get_ptr(settings_style,name)) + sizeof(doc)) = new_value
 
+
 // init configurations, return 0 if succeded, 1 if failed.
 int cfg_init(char *cfg_filename);
 

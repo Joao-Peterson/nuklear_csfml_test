@@ -21,7 +21,7 @@ int cfg_init(char *cfg_filename){
     }
 
     char theme[200];
-    snprintf(theme, 200, "theme.%s", doc_get(pcfg, "theme.active", char*));
+    snprintf(theme, 200, "theme.array.%s", doc_get(pcfg, "theme.active", char*));
     settings_style = doc_get_ptr(pcfg, theme);
     if(settings_style == NULL){
         printf("Invalid style.\n");

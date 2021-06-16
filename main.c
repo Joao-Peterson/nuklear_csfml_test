@@ -73,9 +73,7 @@ int main(int argc, char **argv){
     context = nk_csfml_init(window, &font->handle);
     
     /* video settings */
-    // textures
-    global_state.texture = mygui_load_texture(context, style_get("texture_file", char*));
-    mygui_styles(context);
+    mygui_styles(context);                                                          // textures and styles
     sfVector2u window_size;
     sfVector2i window_pos;
     window_size.x = cfg_get("window.size.w", int);

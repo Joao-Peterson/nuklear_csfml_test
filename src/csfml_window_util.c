@@ -74,7 +74,7 @@ int csfml_cursor_set(cursor_enum cursor){
 // wich is defined actually the title portion of the topbar, excluding the menu buttons to the left and window buttons to the right. 
 cursor_pos_enum csfml_window_scan(sfRenderWindow *window, sfEvent event, int border_clearence, int topbar_x0, int topbar_y0, int topbar_x1, int topbar_y1){
     sfVector2u window_size = sfRenderWindow_getSize(window);
-    cursor_pos_enum pos;
+    cursor_pos_enum pos = 0;
 
     if(IS_INSIDE_BOX(event.mouseMove.x, event.mouseMove.y, border_clearence, topbar_y1, window_size.x - border_clearence, window_size.y - border_clearence)){ // outside any region
         pos = 0;
@@ -132,13 +132,13 @@ cursor_pos_enum csfml_window_scan(sfRenderWindow *window, sfEvent event, int bor
             csfml_cursor_set(cursor_resize_135_deg);
         break;
     
-        case cursor_pos_border_ne:
+        // case cursor_pos_border_ne:
         case cursor_pos_border_sw:
             csfml_cursor_set(cursor_resize_45_deg);
         break;
 
         case cursor_pos_topbar:
-            csfml_cursor_set(cursor_move);
+            // csfml_cursor_set(cursor_move);
         break;
 
         default:

@@ -18,11 +18,8 @@
 
 /* --------------------------------------------- Macros --------------------------------------------- */
 
-// window/group debug border macro
-#define debug_border() ((cfg_get("debug.border", bool)) ? NK_WINDOW_BORDER : false)
-
 // macro get nk_color from cfg file. Ex: get_color_cfg_nk("body")
-#define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*));
+#define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*))
 
 /* --------------------------------------------- Structs -------------------------------------------- */
 
@@ -39,6 +36,9 @@ typedef struct{
 
 // load images
 texture_t *mygui_load_texture(struct nk_context *context, char *filename);
+
+// get text width in pixels based on current font settigns 
+float nk_get_text_width(struct nk_context *context, char *text);
 
 // gui style
 void mygui_styles(struct nk_context *context);
