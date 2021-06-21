@@ -14,8 +14,8 @@
 #define NK_INCLUDE_FONT_BAKING
 #include <nuklear.h>
 
-#include "settings.h"
-#include "nk_mygui.h"
+#include "global_state.h"
+#include "mygui.h"
 
 /* --------------------------------------------- Macros --------------------------------------------- */
 
@@ -49,7 +49,7 @@ void nk_window_show_update_size(sfRenderWindow *window, struct nk_context *conte
 // visual settings window
 void mygui_visual(struct nk_context *context, sfRenderWindow *window){
 
-    if(nk_begin(context, cfg_get("windows.settings.visual.label", char*), nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (global_state.first_render_loop ? NK_WINDOW_HIDDEN : 0))){
+    if(nk_begin(context, "Appearance", nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (state.first_render_loop ? NK_WINDOW_HIDDEN : 0))){
 
         /**
          * TODO: make a group inside the window for padding the options more to the center without messing with the scrollbar and scaler 
@@ -57,27 +57,25 @@ void mygui_visual(struct nk_context *context, sfRenderWindow *window){
          * TODO: add scaling option 
          */
 
-        nk_layout_row_begin(context, NK_STATIC, cfg_get("window.row.height", int), 3);                  // first row                  
+        nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
 
         // theme
         char *label = "Theme: ";
-        nk_layout_row_push(context, nk_get_text_width(context, label));
+        nk_layout_row_push(context, get_text_width(context, label));
         nk_label(context, label, NK_TEXT_LEFT);
 
         struct nk_vec2 combo_size;
-        combo_size.x = cfg_get("window.menu_dropdown.width", int);
-        combo_size.y = cfg_get("window.menu_dropdown.height", int);
+        combo_size.x = state.settings.parameters.main_window.menu_dropdown.width;
+        combo_size.y = state.settings.parameters.main_window.menu_dropdown.heigh;
         nk_layout_row_push(context, combo_size.x);
 
-        doc *theme_array = doc_get_ptr(pcfg, "theme.array");
-        if(nk_combo_begin_label(context, doc_get(pcfg, "theme.active", char*), combo_size)){            // combo box of themes
-            nk_layout_row_dynamic(context, cfg_get("window.topbar.height", int), 1);
+        if(nk_combo_begin_label(context, state.settings.active_theme, combo_size)){                     // combo box of themes
+            nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
 
-            for(doc_loop(theme, theme_array)){                                                          // list itens
-                if(nk_combo_item_label(context, theme->name, NK_TEXT_LEFT)){                            // call back on clicked item
-                    doc_set(pcfg, "theme.active", char*, theme->name, strlen(theme->name) + 1);         // set active theme onto doc pcfg
-                    settings_style = theme;                                                             // change pointer to theme
-                    mygui_styles(context);                                                              // re do styles
+            for(doc_size_t i = 0; i < state.settings.themes_size; i++){                                 // list itens
+                if(nk_combo_item_label(context, state.settings.themes[i], NK_TEXT_LEFT)){               // call back on clicked item
+                    global_state_reload(state.settings.themes[i], state.settings.active_parameters);
+                    mygui_styles(context);                                                              // redo styles
                 }
             }
 

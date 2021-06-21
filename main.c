@@ -14,12 +14,10 @@
 #include <nuklear.h>
 
 #include "inc/nuklear_csfml.h"
-#include "inc/nk_mygui.h"
-#include "inc/settings.h"
+#include "inc/mygui.h"
 #include "inc/doc.h"
 #include "inc/doc_json.h"
 #include "inc/global_state.h"
-#include "inc/settings.h"
 #include "inc/csfml_window_util.h"
 
 #define CFG_FILE "cfg.json"
@@ -29,22 +27,19 @@
 
 int main(int argc, char **argv){
 
-    /* settings */
-    if(cfg_init(CFG_FILE)){
+    /* global state */
+    if(global_state_init(CFG_FILE)){
         return 0;
-    }    
-    global_state.window_title = cfg_get("text.title", char*);
-    global_state.topbar_title = cfg_get("text.title", char*);
-    sfKeyCode fullscreen_key = cfg_get("keys.fullscreen", int);
+    }
 
     /* csfml */
     sfVideoMode mode;
-    mode.height = cfg_get("window.size.h", int);
-    mode.width  = cfg_get("window.size.w", int);
+    mode.width  = state.settings.parameters.main_window.size.w;
+    mode.height = state.settings.parameters.main_window.size.h;
     mode.bitsPerPixel = 24;
     sfRenderWindow *window = sfRenderWindow_create(
         mode,
-        global_state.window_title,
+        state.window_title,
         0,
         NULL
     );
@@ -62,7 +57,7 @@ int main(int argc, char **argv){
     /* nuklear */
     struct nk_font_atlas *atlas;
     nk_csfml_font_stash_begin(&atlas);                                              // fonts
-    struct nk_font *font = nk_font_atlas_add_from_file(atlas, cfg_get("text.font.file", char*), cfg_get("text.font.height", int), NULL);
+    struct nk_font *font = nk_font_atlas_add_from_file(atlas, state.settings.parameters.text.font.file, state.settings.parameters.text.font.height, NULL);
     if(font == NULL){
         printf("Missing or invalid font.\n");
         return 0;
@@ -73,32 +68,32 @@ int main(int argc, char **argv){
     context = nk_csfml_init(window, &font->handle);
     
     /* video settings */
-    mygui_styles(context);                                                          // textures and styles
+    mygui_styles(context);                                                            // textures and styles
     sfVector2u window_size;
     sfVector2i window_pos;
-    window_size.x = cfg_get("window.size.w", int);
-    window_size.y = cfg_get("window.size.h", int);
-    window_pos.x = cfg_get("window.size.x", int);
-    window_pos.y = cfg_get("window.size.y", int);
+    window_size.x = state.settings.parameters.main_window.size.w;
+    window_size.y = state.settings.parameters.main_window.size.h;
+    window_pos.x  = state.settings.parameters.main_window.size.x;
+    window_pos.y  = state.settings.parameters.main_window.size.y;
     sfRenderWindow_setSize(window, window_size);
     sfRenderWindow_setPosition(window, window_pos);
 
-    global_state.sfml_window_mode = window_mode_float;
-    if(cfg_get("window.size.fullscreen", bool)){
-        global_state.sfml_window_mode_flag = window_mode_fullscreen;
+    state.sfml_window_mode = window_mode_float;
+    if(state.settings.parameters.main_window.size.fullscreen){
+        state.sfml_window_mode_flag = window_mode_fullscreen;
     }
-    else if(cfg_get("window.size.maximized", bool)){
-        global_state.sfml_window_mode_flag = window_mode_maximized;
+    else if(state.settings.parameters.main_window.size.maximized){
+        state.sfml_window_mode_flag = window_mode_maximized;
     }
 
     /* render loop */
-    global_state.sfml_running = sfRenderWindow_isOpen(window);
-    int clearence = cfg_get("window.resize.clearence", int);
-    int minx = cfg_get("window.resize.min.x", int);
-    int miny = cfg_get("window.resize.min.y", int);
-    int topbar_height = cfg_get("window.topbar.height", int);
-    global_state.first_render_loop = true;
-    while(global_state.sfml_running){ 
+    state.sfml_running = sfRenderWindow_isOpen(window);
+    int clearence = state.settings.parameters.main_window.resize.clearence;
+    int minx = state.settings.parameters.main_window.resize.min.x;
+    int miny = state.settings.parameters.main_window.resize.min.y;
+    int topbar_height = state.settings.parameters.main_window.topbar.height;
+    state.first_render_loop = true;
+    while(state.sfml_running){ 
         sfEvent event;
 
         nk_input_begin(context);
@@ -106,7 +101,7 @@ int main(int argc, char **argv){
         while(sfRenderWindow_pollEvent(window, &event)){
             switch(event.type){                                                     // sfml events
                 case sfEvtClosed:
-                    global_state.sfml_running = false;
+                    state.sfml_running = false;
                     sfRenderWindow_close(window);
                 break;
 
@@ -116,25 +111,25 @@ int main(int argc, char **argv){
 
                 case sfEvtMouseMoved:                                               // check mouse on the sides of window for resize
                     // only apply window transform logic when not in fulscreen/maximized mode
-                    if(global_state.sfml_window_mode != window_mode_fullscreen && global_state.sfml_window_mode != window_mode_maximized){
-                        if(global_state.mouse_button_held.mouse_left){              // moving while helding the mouse left down
+                    if(state.sfml_window_mode != window_mode_fullscreen && state.sfml_window_mode != window_mode_maximized){
+                        if(state.mouse_button_held.mouse_left){              // moving while helding the mouse left down
                             csfml_window_transform(
                                 window, 
                                 event, 
-                                global_state.cursor_pos, 
-                                &global_state.mouse_button_held.anchor, 
+                                state.cursor_pos, 
+                                &state.mouse_button_held.anchor, 
                                 minx, 
                                 miny
                             );
                         }
                         else{                                                       // checking mouse pos for resize boundaries and cursor sprite 
-                            global_state.cursor_pos = csfml_window_scan(
+                            state.cursor_pos = csfml_window_scan(
                                 window, 
                                 event, 
                                 clearence,
-                                global_state.topbar_menus_width, 
+                                state.topbar_menus_width, 
                                 0, 
-                                global_state.topbar_menus_width + global_state.topbar_title_width, 
+                                state.topbar_menus_width + state.topbar_title_width, 
                                 topbar_height
                             );
                         }
@@ -144,9 +139,9 @@ int main(int argc, char **argv){
                 case sfEvtMouseButtonPressed:
                     switch(event.mouseButton.button){                               
                         case sfMouseLeft:
-                            global_state.mouse_button_held.mouse_left = true;
-                            global_state.mouse_button_held.anchor.x = event.mouseButton.x;
-                            global_state.mouse_button_held.anchor.y = event.mouseButton.y;
+                            state.mouse_button_held.mouse_left = true;
+                            state.mouse_button_held.anchor.x = event.mouseButton.x;
+                            state.mouse_button_held.anchor.y = event.mouseButton.y;
                         break;
                     }
                 break;
@@ -154,26 +149,26 @@ int main(int argc, char **argv){
                 case sfEvtMouseButtonReleased:
                     switch(event.mouseButton.button){
                         case sfMouseLeft:
-                            global_state.mouse_button_held.mouse_left = false;
+                            state.mouse_button_held.mouse_left = false;
                         break;
                     }
                 break;
 
                 case sfEvtLostFocus:                                                // reset held mouse buttons if they fly off the window
-                    global_state.mouse_button_held.mouse_left = false;
-                    global_state.mouse_button_held.mouse_right = false;
-                    global_state.mouse_button_held.mouse_middle = false;
-                    global_state.mouse_button_held.mouse_xButton1 = false;
-                    global_state.mouse_button_held.mouse_xButton2 = false;
+                    state.mouse_button_held.mouse_left = false;
+                    state.mouse_button_held.mouse_right = false;
+                    state.mouse_button_held.mouse_middle = false;
+                    state.mouse_button_held.mouse_xButton1 = false;
+                    state.mouse_button_held.mouse_xButton2 = false;
                 break;
 
                 case sfEvtKeyPressed:
-                    if(event.key.code == fullscreen_key){                           // fullscreen key
-                        if(global_state.sfml_window_mode == window_mode_fullscreen){
-                            global_state.sfml_window_mode_flag = window_mode_float;
+                    if(event.key.code == state.settings.keys.fullscreen){           // fullscreen key
+                        if(state.sfml_window_mode == window_mode_fullscreen){
+                            state.sfml_window_mode_flag = window_mode_float;
                         }
                         else{
-                            global_state.sfml_window_mode_flag = window_mode_fullscreen;
+                            state.sfml_window_mode_flag = window_mode_fullscreen;
                         }
                     }
                 break;
@@ -184,22 +179,20 @@ int main(int argc, char **argv){
         nk_input_end(context);
 
         /* check global state flags */
-        if(!global_state.sfml_running) break;                                       // close program
+        if(!state.sfml_running) break;                                       // close program
 
-        switch(global_state.sfml_window_mode_flag){                                 // change window mode based on flag
+        switch(state.sfml_window_mode_flag){                                 // change window mode based on flag
 
             /**
              * make a decision on what whatever mode is flag/requested based on the current state of the window
              */
             case window_mode_float:                                                 // float
-                // global_state.topbar_title = "float";
-
-                window_size.x = cfg_get("window.size.w", int);
-                window_size.y = cfg_get("window.size.h", int);
-                window_pos.x  = cfg_get("window.size.x", int);
-                window_pos.y  = cfg_get("window.size.y", int);
+                window_size.x = state.settings.parameters.main_window.size.w;
+                window_size.y = state.settings.parameters.main_window.size.h;
+                window_pos.x  = state.settings.parameters.main_window.size.x;
+                window_pos.y  = state.settings.parameters.main_window.size.y;
             
-                switch(global_state.sfml_window_mode){
+                switch(state.sfml_window_mode){
 
                     case window_mode_maximized:                                     // float from maximized, just change in size
                         sfRenderWindow_setSize(window, window_size);
@@ -214,58 +207,53 @@ int main(int argc, char **argv){
                     break;
                 }
 
-                global_state.sfml_window_mode = window_mode_float;
-                global_state.sfml_window_mode_flag = 0;
+                state.sfml_window_mode = window_mode_float;
+                state.sfml_window_mode_flag = 0;
             break;
                                      
             case window_mode_minimized:                                             // minimize
-                global_state.sfml_window_mode = window_mode_minimized;
-                global_state.sfml_window_mode_flag = 0;
+                state.sfml_window_mode = window_mode_minimized;
+                state.sfml_window_mode_flag = 0;
                 csfml_window_minimize(window);
             break;
 
             case window_mode_maximized:        
-                // global_state.topbar_title = "maximized";
-
-                switch(global_state.sfml_window_mode){
+                switch(state.sfml_window_mode){
                     case window_mode_float:
                         window_size = sfRenderWindow_getSize(window);
                         window_pos = sfRenderWindow_getPosition(window);
 
-                        cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
-                        cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
-                        cfg_set("window.size.x", int, window_pos.x);
-                        cfg_set("window.size.y", int, window_pos.y);
-                        cfg_set("window.size.w", int, window_size.x);
-                        cfg_set("window.size.h", int, window_size.y);                                                        // save floating window size/pos before going fullscreen/maximized
-                                                    // save floating window size/pos before going fullscreen/maximized
+                        state.settings.parameters.main_window.size.fullscreen = (bool)(state.sfml_window_mode == window_mode_fullscreen);
+                        state.settings.parameters.main_window.size.maximized = (bool)(state.sfml_window_mode == window_mode_maximized);
+                        state.settings.parameters.main_window.size.x = window_pos.x;
+                        state.settings.parameters.main_window.size.y = window_pos.y;
+                        state.settings.parameters.main_window.size.w = window_size.x;
+                        state.settings.parameters.main_window.size.h = window_size.y;                   // save floating window size/pos before going fullscreen/maximized
                     break;
                 }
 
-                global_state.sfml_window_mode = window_mode_maximized;
-                global_state.sfml_window_mode_flag = 0;
+                state.sfml_window_mode = window_mode_maximized;
+                state.sfml_window_mode_flag = 0;
                 csfml_window_maximize(window);
             break;
 
             case window_mode_fullscreen:                                            // fullscreen
-                // global_state.topbar_title = "fullscreen";
-
-                switch(global_state.sfml_window_mode){
+                switch(state.sfml_window_mode){
                     case window_mode_float:
                         window_size = sfRenderWindow_getSize(window);
                         window_pos = sfRenderWindow_getPosition(window);
 
-                        cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
-                        cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
-                        cfg_set("window.size.x", int, window_pos.x);
-                        cfg_set("window.size.y", int, window_pos.y);
-                        cfg_set("window.size.w", int, window_size.x);
-                        cfg_set("window.size.h", int, window_size.y);                                                        // save floating window size/pos before going fullscreen/maximized
+                        state.settings.parameters.main_window.size.fullscreen = (bool)(state.sfml_window_mode == window_mode_fullscreen);
+                        state.settings.parameters.main_window.size.maximized = (bool)(state.sfml_window_mode == window_mode_maximized);
+                        state.settings.parameters.main_window.size.x = window_pos.x;
+                        state.settings.parameters.main_window.size.y = window_pos.y;
+                        state.settings.parameters.main_window.size.w = window_size.x;
+                        state.settings.parameters.main_window.size.h = window_size.y;                   // save floating window size/pos before going fullscreen/maximized
                     break;
                 }
 
-                global_state.sfml_window_mode = window_mode_fullscreen;
-                global_state.sfml_window_mode_flag = 0;
+                state.sfml_window_mode = window_mode_fullscreen;
+                state.sfml_window_mode_flag = 0;
                 csfml_window_fullscreen(window);
             break;
 
@@ -274,38 +262,41 @@ int main(int argc, char **argv){
         }
 
         /* GUI */
-        nk_mygui(context, window);
+        mygui(context, window);
 
         /* Draw nuklear (opengl) */
         sfRenderWindow_setActive(window, sfTrue);
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0, 0, 0, 255);
-        /* IMPORTANT: `nk_csfml_render` modifies some global OpenGL state
-        * with blending, scissor, face culling and depth test and defaults everything
-        * back into a default state. Make sure to either save and restore or
-        * reset your own state after drawing rendering the UI. */
+
+        /** 
+         * IMPORTANT: `nk_csfml_render` modifies some global OpenGL state
+         * with blending, scissor, face culling and depth test and defaults everything
+         * back into a default state. Make sure to either save and restore or
+         * reset your own state after drawing rendering the UI. 
+         */
         nk_csfml_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
         sfRenderWindow_display(window);
-        global_state.first_render_loop = false;
+        state.first_render_loop = false;
     }
 
     /* save data */
-    if(global_state.sfml_window_mode != window_mode_fullscreen && global_state.sfml_window_mode != window_mode_maximized){
+    if(state.sfml_window_mode != window_mode_fullscreen && state.sfml_window_mode != window_mode_maximized){
         window_size = sfRenderWindow_getSize(window);
         window_pos  = sfRenderWindow_getPosition(window);
     }
 
-    cfg_set("window.size.fullscreen", bool, (bool)(global_state.sfml_window_mode == window_mode_fullscreen));
-    cfg_set("window.size.maximized", bool, (bool)(global_state.sfml_window_mode == window_mode_maximized));
-    cfg_set("window.size.x", int, window_pos.x);
-    cfg_set("window.size.y", int, window_pos.y);
-    cfg_set("window.size.w", int, window_size.x);
-    cfg_set("window.size.h", int, window_size.y);
+    state.settings.parameters.main_window.size.fullscreen = (bool)(state.sfml_window_mode == window_mode_fullscreen);
+    state.settings.parameters.main_window.size.maximized = (bool)(state.sfml_window_mode == window_mode_maximized);
+    state.settings.parameters.main_window.size.x = window_pos.x;
+    state.settings.parameters.main_window.size.y = window_pos.y;
+    state.settings.parameters.main_window.size.w = window_size.x;
+    state.settings.parameters.main_window.size.h = window_size.y;                   // save floating window size/pos before going fullscreen/maximized
 
-    cfg_end();    
+    global_state_end();
 
     /* exit */
-    free(global_state.texture);
+    free(state.texture);
     nk_csfml_shutdown();
     return 0;
 }

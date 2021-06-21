@@ -1,5 +1,5 @@
-#ifndef _NK_MYGUI_HEADER_
-#define _NK_MYGUI_HEADER_
+#ifndef _MYGUI_HEADER_
+#define _MYGUI_HEADER_
 
 #include <stdbool.h>
 #include <stdarg.h>
@@ -13,8 +13,6 @@
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
 #include <nuklear.h>
-
-#include "settings.h"
 
 /* --------------------------------------------- Macros --------------------------------------------- */
 
@@ -34,16 +32,10 @@ typedef struct{
 
 /* --------------------------------------------- Functions ------------------------------------------ */
 
-// load images
-texture_t *mygui_load_texture(struct nk_context *context, char *filename);
-
-// get text width in pixels based on current font settigns 
-float nk_get_text_width(struct nk_context *context, char *text);
-
-// gui style
-void mygui_styles(struct nk_context *context);
+// get a string width accordingly with the context font
+float get_text_width(struct nk_context *context, char *text);
 
 // main gui routine
-void nk_mygui(struct nk_context *context, sfRenderWindow *window);
+void mygui(struct nk_context *context, sfRenderWindow *window);
 
 #endif

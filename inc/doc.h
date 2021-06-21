@@ -451,13 +451,33 @@ doc *doc_from_string(char *name, char *string);
  * @param name: name of the data inside obj
  * @param type: type of the data, C keyword types
  * @param new_value: value to be set
- * @param ...: as optional argument to char* and uint8_t* types, the len should be specified
  */
-#define doc_set(variable, name, type, new_value, ...) \
-    if(__check_string_bindata(doc_get_ptr(variable, name))){ \
-        ((doc_bindata*)doc_get_ptr(variable, name))->len = __VA_ARGS__; \
-    } \
+#define doc_set(variable, name, type, new_value) \
     *(type*)((void*)__check_obj_is_value(doc_get_ptr(variable,name)) + sizeof(doc)) = new_value
+
+/**
+ * @brief sets the new value for a string instance
+ * @param variable: pointer to the data instance
+ * @param name: name of the data inside obj
+ * @param type: type of the data, C keyword types
+ * @param new_value: value to be set
+ * @param size: length of the string, accounting the null terminated character
+ */
+#define doc_set_string(variable, name, type, new_value, size) \
+    *(type*)((void*)__check_obj_is_value(doc_get_ptr(variable,name)) + sizeof(doc)) = new_value; \
+    ((doc_string*)(doc_get_ptr(variable,name)))->len = size
+
+/**
+ * @brief sets the new value for a bindata instance
+ * @param variable: pointer to the data instance
+ * @param name: name of the data inside obj
+ * @param type: type of the data, C keyword types
+ * @param new_value: value to be set
+ * @param size: length of the bindata
+ */
+#define doc_set_bindata(variable, name, type, new_value, size) \
+    *(type*)((void*)__check_obj_is_value(doc_get_ptr(variable,name)) + sizeof(doc)) = new_value; \
+    ((doc_bindata*)(doc_get_ptr(variable,name)))->len = size
 
 /**
  * @brief creates a iterator for a object or array to be used on a for loop

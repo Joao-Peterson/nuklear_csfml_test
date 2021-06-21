@@ -21,9 +21,9 @@ L_FLAGS += -lcsfml-system-2
 L_FLAGS += -lcsfml-window-2
 
 SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/global_state.c
-SOURCES += src/nk_mygui.c src/nuklear.c src/settings.c
+SOURCES += src/mygui.c src/nuklear.c 
 
-HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/global_state.h inc/nk_mygui.h inc/settings.h 
+HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/global_state.h inc/mygui.h 
 HEADERS += inc/mygui_windows.h inc/mygui_widgets.h
 
 MAIN_APP := main.exe

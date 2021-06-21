@@ -14,7 +14,8 @@
 #define NK_INCLUDE_FONT_BAKING
 #include <nuklear.h>
 
-#include "settings.h"
+#include "mygui.h"
+#include "global_state.h"
 
 /* --------------------------------------------- Structs -------------------------------------------- */
 
