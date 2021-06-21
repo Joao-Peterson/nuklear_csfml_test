@@ -50,6 +50,12 @@
                             "x": 50,
                             "y": 50
                         }
+                    },
+                    "group": {
+                        "padding": {
+                            "x": 35,
+                            "y": 30
+                        }
                     }
                 },
                 "windows": {
@@ -79,10 +85,95 @@
                         }
                     }
                 }
+            },
+            {
+                "main_window": {
+                    "title": "PetriCAD",
+                    "topbar": {
+                        "height": 31,
+                        "buttons": {
+                            "width": 50
+                        }
+                    },
+                    "body": {
+                        "sidebar": {
+                            "width": 75
+                        }
+                    },
+                    "footer": {
+                        "height": 31
+                    },
+                    "menu_dropdown": {
+                        "width": 320,
+                        "height": 3000
+                    },
+                    "resize": {
+                        "clearence": 8,
+                        "min": {
+                            "x": 220,
+                            "y": 220
+                        }
+                    },
+                    "size": {
+                        "x": 321,
+                        "y": 211,
+                        "w": 912,
+                        "h": 708,
+                        "fullscreen": false,
+                        "maximized": true
+                    },
+                    "border": {
+                        "size": 2
+                    },
+                    "row": {
+                        "height": 32,
+                        "spacing": {
+                            "x": 0,
+                            "y": 30
+                        },
+                        "padding": {
+                            "x": 50,
+                            "y": 50
+                        }
+                    },
+                    "group": {
+                        "padding": {
+                            "x": 35,
+                            "y": 30
+                        }
+                    }
+                },
+                "windows": {
+                    "settings": {
+                        "visual": {
+                            "size": {
+                                "scale": {
+                                    "w": 60,
+                                    "h": 70
+                                }
+                            }
+                        }
+                    }
+                },
+                "text": {
+                    "widget": {
+                        "padding": 20
+                    },
+                    "font": {
+                        "file": "font/consola.ttf",
+                        "height": 19
+                    },
+                    "padding": {
+                        "contextual_button": {
+                            "x": 20,
+                            "y": 2
+                        }
+                    }
+                }
             }
         ],
         "active": 0,
-        "size": 1
+        "size": 2
     },
     "theme": {
         "array": {

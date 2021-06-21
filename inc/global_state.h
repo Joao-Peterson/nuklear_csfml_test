@@ -71,6 +71,12 @@ typedef struct{
                     int y;                                                          /**< default padding in y between rows and the window*/
                 }padding;
             }row;
+            struct group{                       
+                struct padding_2{                                                   /**< padding between window and the group isnide of it*/
+                    int x;
+                    int y;
+                }padding;
+            }group;
         }main_window;
         struct windows{                                                             /**< data for the different windows*/
             struct settings{
@@ -92,7 +98,7 @@ typedef struct{
                 char *file;                                                         /**< filename for the truetype font*/
                 int height;                                                         /**< height of the font*/
             }font;
-            struct padding_2{
+            struct padding_3{
                 struct contextual_button{
                     int x;                                                          /**< padding of the buttons inside the dropdown menus in x*/
                     int y;                                                          /**< padding of the buttons inside the dropdown menus in y*/

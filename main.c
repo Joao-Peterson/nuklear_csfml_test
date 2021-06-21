@@ -296,7 +296,6 @@ int main(int argc, char **argv){
     global_state_end();
 
     /* exit */
-    free(state.texture);
     nk_csfml_shutdown();
     return 0;
 }

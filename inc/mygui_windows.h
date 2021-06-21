@@ -49,40 +49,67 @@ void nk_window_show_update_size(sfRenderWindow *window, struct nk_context *conte
 // visual settings window
 void mygui_visual(struct nk_context *context, sfRenderWindow *window){
 
+    static int scale = -1;
+    if(scale < 0){
+        scale = state.settings.active_parameters;
+    }
+
     if(nk_begin(context, "Appearance", nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (state.first_render_loop ? NK_WINDOW_HIDDEN : 0))){
 
-        /**
-         * TODO: make a group inside the window for padding the options more to the center without messing with the scrollbar and scaler 
-         * TODO: remove the little space between the combobox buttons and the combobox window to the right side 
-         * TODO: add scaling option 
-         */
+        nk_style_push_vec2(context, &context->style.window.group_padding, nk_vec2(state.settings.parameters.main_window.group.padding.x, state.settings.parameters.main_window.group.padding.y));
 
-        nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
+        nk_layout_row_dynamic(context, nk_window_get_content_region_size(context).y, 1);
 
-        // theme
-        char *label = "Theme: ";
-        nk_layout_row_push(context, get_text_width(context, label));
-        nk_label(context, label, NK_TEXT_LEFT);
+        if(nk_group_begin(context, "Appearance_group", 0)){
 
-        struct nk_vec2 combo_size;
-        combo_size.x = state.settings.parameters.main_window.menu_dropdown.width;
-        combo_size.y = state.settings.parameters.main_window.menu_dropdown.heigh;
-        nk_layout_row_push(context, combo_size.x);
+            char *label;
+            struct nk_vec2 combo_size;
+            combo_size.x = state.settings.parameters.main_window.menu_dropdown.width;
+            combo_size.y = state.settings.parameters.main_window.menu_dropdown.heigh;
 
-        if(nk_combo_begin_label(context, state.settings.active_theme, combo_size)){                     // combo box of themes
-            nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
 
-            for(doc_size_t i = 0; i < state.settings.themes_size; i++){                                 // list itens
-                if(nk_combo_item_label(context, state.settings.themes[i], NK_TEXT_LEFT)){               // call back on clicked item
-                    global_state_reload(state.settings.themes[i], state.settings.active_parameters);
-                    mygui_styles(context);                                                              // redo styles
+            // theme
+            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
+            label = "Theme: ";
+            nk_layout_row_push(context, get_text_width(context, label));
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            if(nk_combo_begin_label(context, state.settings.active_theme, combo_size)){                     // combo box of themes
+                nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
+
+                for(doc_size_t i = 0; i < state.settings.themes_size; i++){                                 // list itens
+                    if(nk_combo_item_label(context, state.settings.themes[i], NK_TEXT_LEFT)){               // call back on clicked item
+                        global_state_reload(state.settings.themes[i], state.settings.active_parameters);
+                        mygui_styles(context);                                                              // redo styles
+                    }
                 }
-            }
 
-            nk_combo_end(context);
+                nk_combo_end(context);
+            }
+            nk_layout_row_end(context);
+
+
+            // scale
+            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
+            label = "Scale: ";
+            nk_layout_row_push(context, get_text_width(context, label));
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            
+            nk_property_int(context, "Scale", 0, &scale, state.settings.parameters_size - 1, 1, 1);
+
+            nk_layout_row_end(context);
+
+
+            nk_group_end(context);
         }
 
-        nk_layout_row_end(context);
+        nk_style_pop_vec2(context);
+    }
+
+    if(scale != state.settings.active_parameters){
+        global_state_reload(state.settings.active_theme, scale);
+        mygui_styles(context);
     }
 
     nk_end(context);

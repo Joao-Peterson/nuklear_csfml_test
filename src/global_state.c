@@ -53,6 +53,8 @@ void read_settings(void){
     state.settings.parameters.main_window.row.spacing.y                = doc_get(parameters, "main_window.row.spacing.y", int);
     state.settings.parameters.main_window.row.padding.x                = doc_get(parameters, "main_window.row.padding.x", int);
     state.settings.parameters.main_window.row.padding.y                = doc_get(parameters, "main_window.row.padding.y", int);
+    state.settings.parameters.main_window.group.padding.x              = doc_get(parameters, "main_window.group.padding.x", int);
+    state.settings.parameters.main_window.group.padding.y              = doc_get(parameters, "main_window.group.padding.y", int);
     state.settings.parameters.windows.settings.visual.size.scale.w     = doc_get(parameters, "windows.settings.visual.size.scale.w", int);
     state.settings.parameters.windows.settings.visual.size.scale.h     = doc_get(parameters, "windows.settings.visual.size.scale.h", int);
     state.settings.parameters.text.widget.padding                      = doc_get(parameters, "text.widget.padding", int);
@@ -121,6 +123,8 @@ void write_settings(void){
     doc_set(parameters, "main_window.row.spacing.y", int, state.settings.parameters.main_window.row.spacing.y);                                                                                              
     doc_set(parameters, "main_window.row.padding.x", int, state.settings.parameters.main_window.row.padding.x);                                                                                                                      
     doc_set(parameters, "main_window.row.padding.y", int, state.settings.parameters.main_window.row.padding.y);                                                                                                                      
+    doc_set(parameters, "main_window.group.padding.x", int, state.settings.parameters.main_window.group.padding.x);                                                                                                                      
+    doc_set(parameters, "main_window.group.padding.y", int, state.settings.parameters.main_window.group.padding.y);                                                                                                                      
     doc_set(parameters, "windows.settings.visual.size.scale.w", int, state.settings.parameters.windows.settings.visual.size.scale.w);                                                                                       
     doc_set(parameters, "windows.settings.visual.size.scale.h", int, state.settings.parameters.windows.settings.visual.size.scale.h);                                                                                           
     doc_set(parameters, "text.widget.padding", int, state.settings.parameters.text.widget.padding);                                                                                                                                
@@ -206,6 +210,8 @@ texture_t *load_texture(struct nk_context *context, char *filename){
 // gui style
 void mygui_styles(struct nk_context *context){
     
+    nk_style_set_font()
+
     // texture
     state.texture = load_texture(context, state.settings.theme.texture_file);
 
@@ -214,8 +220,9 @@ void mygui_styles(struct nk_context *context){
     context->style.window.padding = nk_vec2(0,0);                                   // pad between window and groups
     context->style.window.menu_border = 0;
     context->style.window.menu_padding = nk_vec2(0,0);
-    // context->style.window.min_row_height_padding = 0;
-    context->style.window.spacing = nk_vec2(0, 0);
+    context->style.window.spacing = nk_vec2(0,0);
+    // context->style.window.spacing.x = state.settings.parameters.main_window.row.spacing.x;
+    // context->style.window.spacing.y = state.settings.parameters.main_window.row.spacing.y;
     context->style.window.group_padding = nk_vec2(0,0);                             // set zero padding between groups nesting
     context->style.window.group_border = state.settings.parameters.main_window.border.size;
 
@@ -321,6 +328,10 @@ void mygui_styles(struct nk_context *context){
     context->style.scrollv.cursor_active = nk_style_item_color(state.settings.theme.hover1);
     context->style.scrollv.cursor_normal = nk_style_item_color(state.settings.theme.border);
     context->style.scrollv.cursor_hover = nk_style_item_color(state.settings.theme.hover1);
+
+    // proprieties
+    // context->style.property.
+    
 }
 
 
@@ -350,10 +361,11 @@ void global_state_reload(char *theme, int parameter){
     read_settings();
 }
 
+
 // end state and save config
 void global_state_end(void){
     write_settings();
     doc_json_save(state.settings.cfg, state.settings.cfg_filename);
-    doc_delete(state.settings.cfg, ".");
+    // doc_delete(state.settings.cfg, ".");
     free(state.texture);
 }

@@ -1,1 +1,235 @@
-{"parameters":{"array":[{"main_window":{"title":"PetriCAD","topbar":{"height":26,"buttons":{"width":45}},"body":{"sidebar":{"width":70}},"footer":{"height":26},"menu_dropdown":{"width":300,"height":3000},"resize":{"clearence":8,"min":{"x":200,"y":200}},"size":{"x":443,"y":178,"w":912,"h":710,"fullscreen":false,"maximized":false},"border":{"size":2},"row":{"height":27,"spacing":{"x":0,"y":7},"padding":{"x":50,"y":50}}},"windows":{"settings":{"visual":{"size":{"scale":{"w":60,"h":70}}}}},"text":{"widget":{"padding":20},"font":{"file":"font/consola.ttf","height":14},"padding":{"contextual_button":{"x":20,"y":2}}}}],"active":0,"size":1},"theme":{"array":{"Dark":{"topbar":"#0F1218FF","body":"#141820FF","sidebar":"#0F1218FF","footer":"#0F1218FF","window":"#141820FF","hover1":"#222836FF","selected1":"#222836FF","font":"#BDC2D5FF","border":"#272A30FF","texture_file":"assets/dark.png"},"Light":{"topbar":"#D9DDE7FF","body":"#E8ECF7FF","sidebar":"#D9DDE7FF","footer":"#D9DDE7FF","window":"#E8ECF7FF","hover1":"#BDC2D5FF","selected1":"#BDC2D5FF","font":"#252422FF","border":"#D9DDE7FF","texture_file":"assets/light.png"},"Monokai":{"topbar":"#252422FF","body":"#403D39FF","sidebar":"#252422FF","footer":"#EB5E28FF","window":"#403D39FF","hover1":"#CCC5B9FF","selected1":"#CCC5B9FF","font":"#CCC5B9FF","border":"#252422FF","texture_file":"assets/monokai.png"},"Olive":{"topbar":"#ACBD86ff","body":"#F1EFE2ff","sidebar":"#ACBD86ff","footer":"#BDCEA1ff","window":"#E6E5C7ff","hover1":"#FFEEC0ff","selected1":"#FFEEC0ff","font":"#2f3a39ff","border":"#A2AD85ff","texture_file":"assets/olive.png"}},"active":"Dark","size":4},"keys":{"fullscreen":95}}
+{
+    "parameters": {
+        "array": [
+            {
+                "main_window": {
+                    "title": "PetriCAD",
+                    "topbar": {
+                        "height": 26,
+                        "buttons": {
+                            "width": 45
+                        }
+                    },
+                    "body": {
+                        "sidebar": {
+                            "width": 70
+                        }
+                    },
+                    "footer": {
+                        "height": 26
+                    },
+                    "menu_dropdown": {
+                        "width": 300,
+                        "height": 3000
+                    },
+                    "resize": {
+                        "clearence": 8,
+                        "min": {
+                            "x": 200,
+                            "y": 200
+                        }
+                    },
+                    "size": {
+                        "x": 370,
+                        "y": 167,
+                        "w": 1067,
+                        "h": 710,
+                        "fullscreen": false,
+                        "maximized": false
+                    },
+                    "border": {
+                        "size": 2
+                    },
+                    "row": {
+                        "height": 27,
+                        "spacing": {
+                            "x": 0,
+                            "y": 7
+                        },
+                        "padding": {
+                            "x": 50,
+                            "y": 50
+                        }
+                    },
+                    "group": {
+                        "padding": {
+                            "x": 35,
+                            "y": 30
+                        }
+                    }
+                },
+                "windows": {
+                    "settings": {
+                        "visual": {
+                            "size": {
+                                "scale": {
+                                    "w": 60,
+                                    "h": 70
+                                }
+                            }
+                        }
+                    }
+                },
+                "text": {
+                    "widget": {
+                        "padding": 20
+                    },
+                    "font": {
+                        "file": "font/consola.ttf",
+                        "height": 14
+                    },
+                    "padding": {
+                        "contextual_button": {
+                            "x": 20,
+                            "y": 2
+                        }
+                    }
+                }
+            },
+            {
+                "main_window": {
+                    "title": "PetriCAD",
+                    "topbar": {
+                        "height": 31,
+                        "buttons": {
+                            "width": 50
+                        }
+                    },
+                    "body": {
+                        "sidebar": {
+                            "width": 75
+                        }
+                    },
+                    "footer": {
+                        "height": 31
+                    },
+                    "menu_dropdown": {
+                        "width": 320,
+                        "height": 3000
+                    },
+                    "resize": {
+                        "clearence": 8,
+                        "min": {
+                            "x": 220,
+                            "y": 220
+                        }
+                    },
+                    "size": {
+                        "x": 370,
+                        "y": 167,
+                        "w": 1067,
+                        "h": 710,
+                        "fullscreen": false,
+                        "maximized": true
+                    },
+                    "border": {
+                        "size": 2
+                    },
+                    "row": {
+                        "height": 32,
+                        "spacing": {
+                            "x": 0,
+                            "y": 30
+                        },
+                        "padding": {
+                            "x": 50,
+                            "y": 50
+                        }
+                    },
+                    "group": {
+                        "padding": {
+                            "x": 35,
+                            "y": 30
+                        }
+                    }
+                },
+                "windows": {
+                    "settings": {
+                        "visual": {
+                            "size": {
+                                "scale": {
+                                    "w": 60,
+                                    "h": 70
+                                }
+                            }
+                        }
+                    }
+                },
+                "text": {
+                    "widget": {
+                        "padding": 20
+                    },
+                    "font": {
+                        "file": "font/consola.ttf",
+                        "height": 19
+                    },
+                    "padding": {
+                        "contextual_button": {
+                            "x": 20,
+                            "y": 2
+                        }
+                    }
+                }
+            }
+        ],
+        "active": 1,
+        "size": 2
+    },
+    "theme": {
+        "array": {
+            "Dark": {
+                "topbar": "#0F1218FF",
+                "body": "#141820FF",
+                "sidebar": "#0F1218FF",
+                "footer": "#0F1218FF",
+                "window": "#141820FF",
+                "hover1": "#222836FF",
+                "selected1": "#222836FF",
+                "font": "#BDC2D5FF",
+                "border": "#272A30FF",
+                "texture_file": "assets/dark.png"
+            },
+            "Light": {
+                "topbar": "#D9DDE7FF",
+                "body": "#E8ECF7FF",
+                "sidebar": "#D9DDE7FF",
+                "footer": "#D9DDE7FF",
+                "window": "#E8ECF7FF",
+                "hover1": "#BDC2D5FF",
+                "selected1": "#BDC2D5FF",
+                "font": "#252422FF",
+                "border": "#D9DDE7FF",
+                "texture_file": "assets/light.png"
+            },
+            "Monokai": {
+                "topbar": "#252422ff",
+                "body": "#403d39ff",
+                "sidebar": "#252422ff",
+                "footer": "#eb5e28ff",
+                "window": "#403d39ff",
+                "hover1": "#ccc5b9ff",
+                "selected1": "#ccc5b9ff",
+                "font": "#ccc5b9ff",
+                "border": "#252422ff",
+                "texture_file": "assets/monokai.png"
+            },
+            "Olive": {
+                "topbar": "#ACBD86ff",
+                "body": "#F1EFE2ff",
+                "sidebar": "#ACBD86ff",
+                "footer": "#BDCEA1ff",
+                "window": "#E6E5C7ff",
+                "hover1": "#FFEEC0ff",
+                "selected1": "#FFEEC0ff",
+                "font": "#2f3a39ff",
+                "border": "#A2AD85ff",
+                "texture_file": "assets/olive.png"
+            }
+        },
+        "active": "Light",
+        "size": 4
+    },
+    "keys": {
+        "fullscreen": 95
+    }
+}
