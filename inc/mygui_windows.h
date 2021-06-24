@@ -49,11 +49,6 @@ void nk_window_show_update_size(sfRenderWindow *window, struct nk_context *conte
 // visual settings window
 void mygui_visual(struct nk_context *context, sfRenderWindow *window){
 
-    static int scale = -1;
-    if(scale < 0){
-        scale = state.settings.active_parameters;
-    }
-
     if(nk_begin(context, "Appearance", nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (state.first_render_loop ? NK_WINDOW_HIDDEN : 0))){
 
         nk_style_push_vec2(context, &context->style.window.group_padding, nk_vec2(state.settings.parameters.main_window.group.padding.x, state.settings.parameters.main_window.group.padding.y));
@@ -62,25 +57,26 @@ void mygui_visual(struct nk_context *context, sfRenderWindow *window){
 
         if(nk_group_begin(context, "Appearance_group", 0)){
 
+            nk_style_push_vec2(context, &context->style.window.spacing, nk_vec2(state.settings.parameters.main_window.row.spacing.x, state.settings.parameters.main_window.row.spacing.y));
+
             char *label;
             struct nk_vec2 combo_size;
             combo_size.x = state.settings.parameters.main_window.menu_dropdown.width;
             combo_size.y = state.settings.parameters.main_window.menu_dropdown.heigh;
 
-
             // theme
-            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
+            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);       // first row                  
             label = "Theme: ";
-            nk_layout_row_push(context, get_text_width(context, label));
+            nk_layout_row_push(context, state.settings.parameters.windows.settings.visual.label_to_widget_x_padding);
             nk_label(context, label, NK_TEXT_LEFT);
             nk_layout_row_push(context, combo_size.x);
-            if(nk_combo_begin_label(context, state.settings.active_theme, combo_size)){                     // combo box of themes
+            if(nk_combo_begin_label(context, state.settings.active_theme, combo_size)){                         // combo box of themes
                 nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
 
-                for(doc_size_t i = 0; i < state.settings.themes_size; i++){                                 // list itens
-                    if(nk_combo_item_label(context, state.settings.themes[i], NK_TEXT_LEFT)){               // call back on clicked item
-                        global_state_reload(state.settings.themes[i], state.settings.active_parameters);
-                        mygui_styles(context);                                                              // redo styles
+                for(doc_size_t i = 0; i < state.settings.themes_size; i++){                                     // list itens
+                    if(nk_combo_item_label(context, state.settings.themes[i], NK_TEXT_LEFT)){                   // call back on clicked item
+                        global_state_reload(state.settings.themes[i], NULL, NULL);
+                        mygui_styles(context);                                                                  // redo styles
                     }
                 }
 
@@ -90,26 +86,51 @@ void mygui_visual(struct nk_context *context, sfRenderWindow *window){
 
 
             // scale
-            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);  // first row                  
+            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);       // first row                  
             label = "Scale: ";
-            nk_layout_row_push(context, get_text_width(context, label));
+            nk_layout_row_push(context, state.settings.parameters.windows.settings.visual.label_to_widget_x_padding);
             nk_label(context, label, NK_TEXT_LEFT);
             nk_layout_row_push(context, combo_size.x);
-            
-            nk_property_int(context, "Scale", 0, &scale, state.settings.parameters_size - 1, 1, 1);
+            if(nk_combo_begin_label(context, state.settings.active_parameters, combo_size)){                     // combo box of themes
+                nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
 
+                for(doc_size_t i = 0; i < state.settings.parameters_size; i++){                                 // list itens
+                    if(nk_combo_item_label(context, state.settings.parameters_array[i], NK_TEXT_LEFT)){         // call back on clicked item
+                        global_state_reload(NULL, state.settings.parameters_array[i], NULL);
+                        mygui_styles(context);                                                                  // redo styles
+                    }
+                }
+
+                nk_combo_end(context);
+            }
             nk_layout_row_end(context);
 
+            
+            // font
+            nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.row.height, 3);       // first row                  
+            label = "Font: ";
+            nk_layout_row_push(context, state.settings.parameters.windows.settings.visual.label_to_widget_x_padding);
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            if(nk_combo_begin_label(context, state.settings.active_font, combo_size)){                          // combo box of themes
+                nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
 
+                for(doc_size_t i = 0; i < state.settings.fonts_size; i++){                                      // list itens
+                    if(nk_combo_item_label(context, state.settings.fonts_names[i], NK_TEXT_LEFT)){              // call back on clicked item
+                        global_state_reload(NULL, NULL, state.settings.fonts_names[i]);
+                        mygui_styles(context);                                                                  // redo styles
+                    }
+                }
+
+                nk_combo_end(context);
+            }
+            nk_layout_row_end(context);
+
+            nk_style_pop_vec2(context);
             nk_group_end(context);
         }
 
         nk_style_pop_vec2(context);
-    }
-
-    if(scale != state.settings.active_parameters){
-        global_state_reload(state.settings.active_theme, scale);
-        mygui_styles(context);
     }
 
     nk_end(context);

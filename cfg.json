@@ -1,7 +1,7 @@
 {
     "parameters": {
-        "array": [
-            {
+        "array": {
+            "100%": {
                 "main_window": {
                     "title": "PetriCAD",
                     "topbar": {
@@ -30,12 +30,12 @@
                         }
                     },
                     "size": {
-                        "x": 370,
-                        "y": 167,
+                        "x": 415,
+                        "y": 159,
                         "w": 1067,
                         "h": 710,
                         "fullscreen": false,
-                        "maximized": false
+                        "maximized": true
                     },
                     "border": {
                         "size": 2
@@ -66,7 +66,8 @@
                                     "w": 60,
                                     "h": 70
                                 }
-                            }
+                            },
+                            "label_to_widget_x_padding": 70
                         }
                     }
                 },
@@ -75,7 +76,6 @@
                         "padding": 20
                     },
                     "font": {
-                        "file": "font/consola.ttf",
                         "height": 14
                     },
                     "padding": {
@@ -86,7 +86,7 @@
                     }
                 }
             },
-            {
+            "125%": {
                 "main_window": {
                     "title": "PetriCAD",
                     "topbar": {
@@ -120,7 +120,7 @@
                         "w": 1067,
                         "h": 710,
                         "fullscreen": false,
-                        "maximized": true
+                        "maximized": false
                     },
                     "border": {
                         "size": 2
@@ -129,7 +129,7 @@
                         "height": 32,
                         "spacing": {
                             "x": 0,
-                            "y": 30
+                            "y": 7
                         },
                         "padding": {
                             "x": 50,
@@ -151,7 +151,8 @@
                                     "w": 60,
                                     "h": 70
                                 }
-                            }
+                            },
+                            "label_to_widget_x_padding": 70
                         }
                     }
                 },
@@ -160,7 +161,6 @@
                         "padding": 20
                     },
                     "font": {
-                        "file": "font/consola.ttf",
                         "height": 19
                     },
                     "padding": {
@@ -171,9 +171,33 @@
                     }
                 }
             }
-        ],
-        "active": 1,
+        },
+        "active": "100%",
         "size": 2
+    },
+    "font": {
+        "fonts": {
+            "Consola": {
+                "file": "font/consola.ttf",
+                "heights": [
+                    10,
+                    14,
+                    19,
+                    23
+                ]
+            },
+            "Consola_bold": {
+                "file": "font/consolab.ttf",
+                "heights": [
+                    10,
+                    14,
+                    19,
+                    23
+                ]
+            }
+        },
+        "size": 2,
+        "active": "Consola"
     },
     "theme": {
         "array": {
@@ -202,27 +226,27 @@
                 "texture_file": "assets/light.png"
             },
             "Monokai": {
-                "topbar": "#252422ff",
-                "body": "#403d39ff",
-                "sidebar": "#252422ff",
-                "footer": "#eb5e28ff",
-                "window": "#403d39ff",
-                "hover1": "#ccc5b9ff",
-                "selected1": "#ccc5b9ff",
-                "font": "#ccc5b9ff",
-                "border": "#252422ff",
+                "topbar": "#252422FF",
+                "body": "#403D39FF",
+                "sidebar": "#252422FF",
+                "footer": "#EB5E28FF",
+                "window": "#403D39FF",
+                "hover1": "#CCC5B9FF",
+                "selected1": "#CCC5B9FF",
+                "font": "#CCC5B9FF",
+                "border": "#252422FF",
                 "texture_file": "assets/monokai.png"
             },
             "Olive": {
-                "topbar": "#ACBD86ff",
-                "body": "#F1EFE2ff",
-                "sidebar": "#ACBD86ff",
-                "footer": "#BDCEA1ff",
-                "window": "#E6E5C7ff",
-                "hover1": "#FFEEC0ff",
-                "selected1": "#FFEEC0ff",
-                "font": "#2f3a39ff",
-                "border": "#A2AD85ff",
+                "topbar": "#ACBD86FF",
+                "body": "#F1EFE2FF",
+                "sidebar": "#ACBD86FF",
+                "footer": "#BDCEA1FF",
+                "window": "#E6E5C7FF",
+                "hover1": "#FFEEC0FF",
+                "selected1": "#FFEEC0FF",
+                "font": "#2F3A39FF",
+                "border": "#A2AD85FF",
                 "texture_file": "assets/olive.png"
             }
         },

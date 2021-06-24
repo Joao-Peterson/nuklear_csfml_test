@@ -27,11 +27,6 @@
 
 int main(int argc, char **argv){
 
-    /* global state */
-    if(global_state_init(CFG_FILE)){
-        return 0;
-    }
-
     /* csfml */
     sfVideoMode mode;
     mode.width  = state.settings.parameters.main_window.size.w;
@@ -54,18 +49,15 @@ int main(int argc, char **argv){
     }
 
 
-    /* nuklear */
-    struct nk_font_atlas *atlas;
-    nk_csfml_font_stash_begin(&atlas);                                              // fonts
-    struct nk_font *font = nk_font_atlas_add_from_file(atlas, state.settings.parameters.text.font.file, state.settings.parameters.text.font.height, NULL);
-    if(font == NULL){
-        printf("Missing or invalid font.\n");
+    /* global state */
+    if(global_state_init(CFG_FILE)){
         return 0;
     }
-    nk_csfml_font_stash_end();
 
+
+    /* nuklear */
     struct nk_context *context;                                                     // nuklear context
-    context = nk_csfml_init(window, &font->handle);
+    context = nk_csfml_init(window, global_state_get_active_font());
     
     /* video settings */
     mygui_styles(context);                                                            // textures and styles

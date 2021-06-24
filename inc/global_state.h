@@ -18,8 +18,9 @@ typedef struct{
     char **themes;
     int themes_size;
 
-    int active_parameters;                                                          /**< active size index */
+    char *active_parameters;                                                        /**< active parameters */
     int parameters_size;
+    char **parameters_array;
 
     struct parameters{                                                              /**< parameters for different elements*/
         struct main_window{
@@ -87,6 +88,7 @@ typedef struct{
                             int h;                                                  /**< height scale of the visual settings window*/
                         }scale;
                     }size;
+                    int label_to_widget_x_padding;                                  /**< distance between the label and the combo box*/
                 }visual;
             }settings;
         }windows;
@@ -95,8 +97,7 @@ typedef struct{
                 int padding;                                                        /**< padding between text and the widget*/
             }widget;
             struct font{
-                char *file;                                                         /**< filename for the truetype font*/
-                int height;                                                         /**< height of the font*/
+                int height;                                                         /**< current font, height */
             }font;
             struct padding_3{
                 struct contextual_button{
@@ -123,6 +124,11 @@ typedef struct{
     struct keys{
         sfKeyCode fullscreen;
     }keys;
+
+    char *active_font;                                                              /**< name of active font */
+    char **fonts_names;                                                             /**< array with fonts names */
+    int fonts_size;                                                                 /**< number of loaded fonts */
+    struct nk_font_atlas *atlas;                                                    /**< nuklear font atlas pointer */
 }settings_t;
 
 
@@ -145,12 +151,13 @@ typedef struct{
         bool mouse_xButton1;    
         bool mouse_xButton2;    
     }mouse_button_held;
-    texture_t *texture;                     /**< pointer to a texture struct containing nk_image for nuklear widgets*/
-    settings_t settings;                    /**< pointer to settings structure*/
+    texture_t *texture;                     /**< pointer to a texture struct containing nk_image for nuklear widgets */
+    settings_t settings;                    /**< pointer to settings structure */
 }state_t;
 
 /* ----------------------------------------- Globals ---------------------------------------- */
 
+// global state variable
 extern state_t state;
 
 /* ----------------------------------------- Functions -------------------------------------- */
@@ -160,7 +167,7 @@ int global_state_init(char *cfg_filename);
 
 
 // reload parameters
-void global_state_reload(char *theme, int parameter);
+void global_state_reload(char *theme, char *parameters, char *font);
 
 
 // end state and save config
@@ -169,5 +176,9 @@ void global_state_end(void);
 
 // gui style
 void mygui_styles(struct nk_context *context);
+
+
+// get current parameter define font
+struct nk_user_font *global_state_get_active_font(void);
 
 #endif

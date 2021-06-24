@@ -2,6 +2,7 @@
 #include "doc.h"
 #include "doc_json.h"
 #include "stb_image.h"
+#include "nuklear_csfml.h"
 
 /* ----------------------------------------- Globals ---------------------------------------- */
 
@@ -18,56 +19,96 @@ char *hex_nk_color(struct nk_color color){
 }
 
 
+// get active font
+struct nk_user_font *global_state_get_active_font(void){
+    int index = 0;
+
+    doc *fonts = doc_get_ptr(state.settings.cfg, "font.fonts");
+    for(doc_loop(font,fonts)){
+        doc *heights = doc_get_ptr(font, "heights");
+        for(doc_loop(height, heights)){
+
+            if(!strcmp(font->name, state.settings.active_font) && (doc_get(height, ".", int) == state.settings.parameters.text.font.height)){
+                struct nk_font *font_cursor = state.settings.atlas->fonts;
+
+                for(int i = 0; i < index; i++)
+                    font_cursor = font_cursor->next;
+
+                return &font_cursor->handle;
+            }
+                
+            index++;
+        }
+    }    
+}
+
+
 // read from cfg doc struct and load values
 void read_settings(void){
-    state.settings.active_parameters = doc_get(state.settings.cfg, "parameters.active", int);
+    char buffer[500];
+
+    // parameters
+    state.settings.active_parameters = doc_get(state.settings.cfg, "parameters.active", char*);
     state.settings.parameters_size = doc_get(state.settings.cfg, "parameters.size", int);
 
+    snprintf(buffer, 500, "parameters.array.%s", state.settings.active_parameters);
+    doc *parameters = doc_get_ptr(state.settings.cfg, buffer);
+
+    if(state.settings.parameters_array != NULL)
+        free(state.settings.parameters_array);
+
+    state.settings.parameters_array = (char**)calloc(state.settings.parameters_size, sizeof(char*));
+
+    char **state_parameters_cursor = state.settings.parameters_array;
+    for(doc_loop(parameters_cursor, parameters->parent)){
+        *(state_parameters_cursor) = parameters_cursor->name;
+        state_parameters_cursor++;
+    }
+
+    state.settings.parameters.main_window.title                                 = doc_get(parameters, "main_window.title", char*);
+    state.settings.parameters.main_window.topbar.height                         = doc_get(parameters, "main_window.topbar.height", int);
+    state.settings.parameters.main_window.topbar.buttons.width                  = doc_get(parameters, "main_window.topbar.buttons.width", int);
+    state.settings.parameters.main_window.body.sidebar.width                    = doc_get(parameters, "main_window.body.sidebar.width", int);
+    state.settings.parameters.main_window.footer.height                         = doc_get(parameters, "main_window.footer.height", int);
+    state.settings.parameters.main_window.menu_dropdown.heigh                   = doc_get(parameters, "main_window.menu_dropdown.height", int);
+    state.settings.parameters.main_window.menu_dropdown.width                   = doc_get(parameters, "main_window.menu_dropdown.width", int);
+    state.settings.parameters.main_window.resize.clearence                      = doc_get(parameters, "main_window.resize.clearence", int);
+    state.settings.parameters.main_window.resize.min.x                          = doc_get(parameters, "main_window.resize.min.x", int);
+    state.settings.parameters.main_window.resize.min.y                          = doc_get(parameters, "main_window.resize.min.y", int);
+    state.settings.parameters.main_window.size.x                                = doc_get(parameters, "main_window.size.x", int);
+    state.settings.parameters.main_window.size.y                                = doc_get(parameters, "main_window.size.y", int);
+    state.settings.parameters.main_window.size.w                                = doc_get(parameters, "main_window.size.w", int);
+    state.settings.parameters.main_window.size.h                                = doc_get(parameters, "main_window.size.h", int);
+    state.settings.parameters.main_window.size.fullscreen                       = doc_get(parameters, "main_window.size.fullscreen", bool);
+    state.settings.parameters.main_window.size.maximized                        = doc_get(parameters, "main_window.size.maximized", bool);
+    state.settings.parameters.main_window.border.size                           = doc_get(parameters, "main_window.border.size", int);
+    state.settings.parameters.main_window.row.height                            = doc_get(parameters, "main_window.row.height", int);
+    state.settings.parameters.main_window.row.spacing.x                         = doc_get(parameters, "main_window.row.spacing.x", int);
+    state.settings.parameters.main_window.row.spacing.y                         = doc_get(parameters, "main_window.row.spacing.y", int);
+    state.settings.parameters.main_window.row.padding.x                         = doc_get(parameters, "main_window.row.padding.x", int);
+    state.settings.parameters.main_window.row.padding.y                         = doc_get(parameters, "main_window.row.padding.y", int);
+    state.settings.parameters.main_window.group.padding.x                       = doc_get(parameters, "main_window.group.padding.x", int);
+    state.settings.parameters.main_window.group.padding.y                       = doc_get(parameters, "main_window.group.padding.y", int);
+    state.settings.parameters.windows.settings.visual.size.scale.w              = doc_get(parameters, "windows.settings.visual.size.scale.w", int);
+    state.settings.parameters.windows.settings.visual.size.scale.h              = doc_get(parameters, "windows.settings.visual.size.scale.h", int);
+    state.settings.parameters.windows.settings.visual.label_to_widget_x_padding = doc_get(parameters, "windows.settings.visual.label_to_widget_x_padding", int);
+    state.settings.parameters.text.widget.padding                               = doc_get(parameters, "text.widget.padding", int);
+    state.settings.parameters.text.padding.contextual_button.x                  = doc_get(parameters, "text.padding.contextual_button.x", int);
+    state.settings.parameters.text.padding.contextual_button.y                  = doc_get(parameters, "text.padding.contextual_button.y", int);
+    state.settings.parameters.text.font.height                                  = doc_get(parameters, "text.font.height", int);
+    
+    
+    //theme
     state.settings.active_theme = doc_get(state.settings.cfg, "theme.active", char*);
     state.settings.themes_size = doc_get(state.settings.cfg, "theme.size", int);
 
-    char buffer[500];
-
-    snprintf(buffer, 500, "parameters.array[%i]", state.settings.active_parameters);
-    doc *parameters = doc_get_ptr(state.settings.cfg, buffer);
-
-    state.settings.parameters.main_window.title                        = doc_get(parameters, "main_window.title", char*);
-    state.settings.parameters.main_window.topbar.height                = doc_get(parameters, "main_window.topbar.height", int);
-    state.settings.parameters.main_window.topbar.buttons.width         = doc_get(parameters, "main_window.topbar.buttons.width", int);
-    state.settings.parameters.main_window.body.sidebar.width           = doc_get(parameters, "main_window.body.sidebar.width", int);
-    state.settings.parameters.main_window.footer.height                = doc_get(parameters, "main_window.footer.height", int);
-    state.settings.parameters.main_window.menu_dropdown.heigh          = doc_get(parameters, "main_window.menu_dropdown.height", int);
-    state.settings.parameters.main_window.menu_dropdown.width          = doc_get(parameters, "main_window.menu_dropdown.width", int);
-    state.settings.parameters.main_window.resize.clearence             = doc_get(parameters, "main_window.resize.clearence", int);
-    state.settings.parameters.main_window.resize.min.x                 = doc_get(parameters, "main_window.resize.min.x", int);
-    state.settings.parameters.main_window.resize.min.y                 = doc_get(parameters, "main_window.resize.min.y", int);
-    state.settings.parameters.main_window.size.x                       = doc_get(parameters, "main_window.size.x", int);
-    state.settings.parameters.main_window.size.y                       = doc_get(parameters, "main_window.size.y", int);
-    state.settings.parameters.main_window.size.w                       = doc_get(parameters, "main_window.size.w", int);
-    state.settings.parameters.main_window.size.h                       = doc_get(parameters, "main_window.size.h", int);
-    state.settings.parameters.main_window.size.fullscreen              = doc_get(parameters, "main_window.size.fullscreen", bool);
-    state.settings.parameters.main_window.size.maximized               = doc_get(parameters, "main_window.size.maximized", bool);
-    state.settings.parameters.main_window.border.size                  = doc_get(parameters, "main_window.border.size", int);
-    state.settings.parameters.main_window.row.height                   = doc_get(parameters, "main_window.row.height", int);
-    state.settings.parameters.main_window.row.spacing.x                = doc_get(parameters, "main_window.row.spacing.x", int);
-    state.settings.parameters.main_window.row.spacing.y                = doc_get(parameters, "main_window.row.spacing.y", int);
-    state.settings.parameters.main_window.row.padding.x                = doc_get(parameters, "main_window.row.padding.x", int);
-    state.settings.parameters.main_window.row.padding.y                = doc_get(parameters, "main_window.row.padding.y", int);
-    state.settings.parameters.main_window.group.padding.x              = doc_get(parameters, "main_window.group.padding.x", int);
-    state.settings.parameters.main_window.group.padding.y              = doc_get(parameters, "main_window.group.padding.y", int);
-    state.settings.parameters.windows.settings.visual.size.scale.w     = doc_get(parameters, "windows.settings.visual.size.scale.w", int);
-    state.settings.parameters.windows.settings.visual.size.scale.h     = doc_get(parameters, "windows.settings.visual.size.scale.h", int);
-    state.settings.parameters.text.widget.padding                      = doc_get(parameters, "text.widget.padding", int);
-    state.settings.parameters.text.font.file                           = doc_get(parameters, "text.font.file", char*);
-    state.settings.parameters.text.font.height                         = doc_get(parameters, "text.font.height", int);
-    state.settings.parameters.text.padding.contextual_button.x         = doc_get(parameters, "text.padding.contextual_button.x", int);
-    state.settings.parameters.text.padding.contextual_button.y         = doc_get(parameters, "text.padding.contextual_button.y", int);
-    
     snprintf(buffer, 500, "theme.array.%s", state.settings.active_theme);
     doc *theme = doc_get_ptr(state.settings.cfg, buffer);
 
-    if(state.settings.themes == NULL)
-        state.settings.themes = (char**)calloc( state.settings.themes_size, sizeof(char*));
+    if(state.settings.themes != NULL)
+        free(state.settings.themes); 
+
+    state.settings.themes = (char**)calloc( state.settings.themes_size, sizeof(char*));
 
     char **state_theme_cursor = state.settings.themes;
     for(doc_loop(theme_cursor, theme->parent)){
@@ -86,19 +127,78 @@ void read_settings(void){
     state.settings.theme.border                                        = nk_rgba_hex(doc_get(theme, "border", char*));
     state.settings.theme.texture_file                                  = doc_get(theme, "texture_file", char*);
 
+
+    // shortcut keys
     state.settings.keys.fullscreen = doc_get(state.settings.cfg, "keys.fullscreen", int);
+
+
+    // fonts
+    state.settings.active_font = doc_get(state.settings.cfg, "font.active", char*);
+    state.settings.fonts_size = doc_get(state.settings.cfg, "font.size", int);
+
+
+    int i = 0;
+
+    // loads all fonts once
+    if(state.settings.atlas == NULL){
+        
+        state.settings.fonts_names = (char**)calloc(state.settings.fonts_size, sizeof(char*));
+
+        nk_csfml_font_stash_begin(&state.settings.atlas);
+
+        doc *fonts = doc_get_ptr(state.settings.cfg, "font.fonts");
+        for(doc_loop(font,fonts)){
+
+            char *file_path = doc_get(font, "file", char*);
+            state.settings.fonts_names[i] = font->name;
+
+            doc *heights = doc_get_ptr(font, "heights");
+            for(doc_loop(height, heights)){
+                if(nk_font_atlas_add_from_file(state.settings.atlas, file_path, doc_get(height, ".", int), NULL) == NULL){
+                    printf("font file \"%s\" doesn't exist\n.", file_path);
+                    exit(1);
+                }    
+            }
+
+            i++;
+        }
+        
+        nk_csfml_font_stash_end();
+    }
+
+    // if(state.settings.atlas != NULL){
+    //     nk_font_atlas_clear(state.settings.atlas);
+    // }
+
+    // nk_csfml_font_stash_begin(&state.settings.atlas);
+
+    // doc *fonts = doc_get_ptr(state.settings.cfg, "font.fonts");
+    // for(doc_loop(font,fonts)){
+
+    //     char *file_path = doc_get(font, "file", char*);
+    //     state.settings.fonts_names[i] = font->name;
+
+    //     doc *heights = doc_get_ptr(font, "heights");
+    //     for(doc_loop(height, heights)){
+    //         if(nk_font_atlas_add_from_file(state.settings.atlas, file_path, doc_get(height, ".", int), NULL) == NULL){
+    //             printf("font file \"%s\" doesn't exist\n.", file_path);
+    //             exit(1);
+    //         }    
+    //     }
+    // }
+    
+    // nk_csfml_font_stash_end();
 }
 
 
 // write state from settings to the cfg doc struct
 void write_settings(void){
-
-    doc_set(state.settings.cfg, "parameters.active", int, state.settings.active_parameters);
-    doc_set(state.settings.cfg, "theme.active", char*, state.settings.active_theme);
-
     char buffer[500];
 
-    snprintf(buffer, 500, "parameters.array[%i]", state.settings.active_parameters);
+    // parameters set
+    doc_set_string(state.settings.cfg, "parameters.active", char*, state.settings.active_parameters, strlen(state.settings.active_parameters) + 1);
+
+    snprintf(buffer, 500, "parameters.array.%s", state.settings.active_parameters);
     doc *parameters = doc_get_ptr(state.settings.cfg, buffer);
 
     doc_set_string(parameters, "main_window.title", char*, state.settings.parameters.main_window.title, strlen(state.settings.parameters.main_window.title) + 1);                                                                                                
@@ -127,12 +227,16 @@ void write_settings(void){
     doc_set(parameters, "main_window.group.padding.y", int, state.settings.parameters.main_window.group.padding.y);                                                                                                                      
     doc_set(parameters, "windows.settings.visual.size.scale.w", int, state.settings.parameters.windows.settings.visual.size.scale.w);                                                                                       
     doc_set(parameters, "windows.settings.visual.size.scale.h", int, state.settings.parameters.windows.settings.visual.size.scale.h);                                                                                           
+    doc_set(parameters, "windows.settings.visual.label_to_widget_x_padding", int, state.settings.parameters.windows.settings.visual.label_to_widget_x_padding);                                                                                           
     doc_set(parameters, "text.widget.padding", int, state.settings.parameters.text.widget.padding);                                                                                                                                
-    doc_set_string(parameters, "text.font.file", char*, state.settings.parameters.text.font.file, strlen(state.settings.parameters.text.font.file) + 1);                                                                                                                                       
-    doc_set(parameters, "text.font.height", int, state.settings.parameters.text.font.height);                                                                                                               
     doc_set(parameters, "text.padding.contextual_button.x", int, state.settings.parameters.text.padding.contextual_button.x);                                                                                                       
     doc_set(parameters, "text.padding.contextual_button.y", int, state.settings.parameters.text.padding.contextual_button.y);                                                                                                                           
+    doc_set(parameters, "text.font.height", int, state.settings.parameters.text.font.height);                                                                                                                           
     
+
+    // theme
+    doc_set_string(state.settings.cfg, "theme.active", char*, state.settings.active_theme, strlen(state.settings.active_theme) + 1);
+
     snprintf(buffer, 500, "theme.array.%s", state.settings.active_theme);
     doc *theme = doc_get_ptr(state.settings.cfg, buffer);
 
@@ -156,9 +260,15 @@ void write_settings(void){
     doc_set_string(theme, "font", char*      , hex_font      , strlen(hex_font      ) + 1);                                                                    
     doc_set_string(theme, "border", char*    , hex_border    , strlen(hex_border    ) + 1);                                                      
 
-    doc_set_string(theme, "texture_file", char* , state.settings.theme.texture_file, strlen(state.settings.theme.texture_file ) + 1);                                                 
+    doc_set_string(theme, "texture_file", char* , state.settings.theme.texture_file, strlen(state.settings.theme.texture_file ) + 1);
 
+
+    // shortcut keys
     doc_set(state.settings.cfg, "keys.fullscreen", int, state.settings.keys.fullscreen);
+
+
+    // fonts
+    doc_set_string(state.settings.cfg, "font.active", char*, state.settings.active_font, strlen(state.settings.active_font) + 1);
 }
 
 
@@ -210,8 +320,9 @@ texture_t *load_texture(struct nk_context *context, char *filename){
 // gui style
 void mygui_styles(struct nk_context *context){
     
-    nk_style_set_font()
-
+    // font
+    nk_style_set_font(context, global_state_get_active_font());
+    
     // texture
     state.texture = load_texture(context, state.settings.theme.texture_file);
 
@@ -330,8 +441,6 @@ void mygui_styles(struct nk_context *context){
     context->style.scrollv.cursor_hover = nk_style_item_color(state.settings.theme.hover1);
 
     // proprieties
-    // context->style.property.
-    
 }
 
 
@@ -354,10 +463,21 @@ int global_state_init(char *cfg_filename){
 
 
 // reload parameters
-void global_state_reload(char *theme, int parameter){
+void global_state_reload(char *theme, char *parameters, char *font){
     write_settings();
-    doc_set(state.settings.cfg, "parameters.active", int, parameter);
-    doc_set_string(state.settings.cfg, "theme.active", char*, theme, strlen(theme) + 1);
+
+    if(parameters != NULL){
+        doc_set_string(state.settings.cfg, "parameters.active", char*, parameters, strlen(parameters) + 1);
+    }
+
+    if(theme != NULL){
+        doc_set_string(state.settings.cfg, "theme.active", char*, theme, strlen(theme) + 1);
+    }
+
+    if(font != NULL){
+        doc_set_string(state.settings.cfg, "font.active", char*, font, strlen(font) + 1);
+    }
+
     read_settings();
 }
 

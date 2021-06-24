@@ -457,6 +457,8 @@ doc *doc_from_string(char *name, char *string);
 
 /**
  * @brief sets the new value for a string instance
+ * @note remember that this is a multilne macro, therefore things like one liners
+ * if cases should be avoided, as it only execute apply to first line of the macro.
  * @param variable: pointer to the data instance
  * @param name: name of the data inside obj
  * @param type: type of the data, C keyword types
