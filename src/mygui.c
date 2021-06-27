@@ -515,11 +515,11 @@ mygui_interface_t *mygui_init(settings_t *settings){
     interface->window_h = interface->settings->parameters.main_window.size.h;                 
 
     interface->window_mode = window_mode_float;
-    if(interface->settings->parameters.main_window.size.fullscreen){
-        interface->window_mode = window_mode_fullscreen;
+    if(interface->settings->parameters.main_window.size.fullscreen){                // set flag to transform window based on previous window mode
+        interface->window_mode_flag = window_mode_fullscreen;
     }
     else if(interface->settings->parameters.main_window.size.maximized){
-        interface->window_mode = window_mode_maximized;
+        interface->window_mode_flag = window_mode_maximized;
     }
 
     interface->topbar_menus_width = 0;                 

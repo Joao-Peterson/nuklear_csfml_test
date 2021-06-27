@@ -26,6 +26,7 @@ int main(int argc, char **argv){
         return 0;
     }
 
+
     /* csfml */
     sfVideoMode mode;
     mode.width  = settings->parameters.main_window.size.w;
@@ -202,7 +203,7 @@ int main(int argc, char **argv){
                 csfml_window_minimize(window);
             break;
 
-            case window_mode_maximized:        
+            case window_mode_maximized:                                             // maximize
                 switch(interface->window_mode){
                     case window_mode_float:
                         window_size = sfRenderWindow_getSize(window);
@@ -247,9 +248,9 @@ int main(int argc, char **argv){
         }
 
         /* GUI */
-        window_size = sfRenderWindow_getSize(window);
-        interface->window_w = window_size.x;
-        interface->window_h = window_size.y;
+        sfVector2u real_window_size = sfRenderWindow_getSize(window);
+        interface->window_w = real_window_size.x;
+        interface->window_h = real_window_size.y;
         mygui(context, interface);
 
         /* Draw nuklear (opengl) */
