@@ -20,11 +20,11 @@ L_FLAGS += -lcsfml-network-2
 L_FLAGS += -lcsfml-system-2
 L_FLAGS += -lcsfml-window-2
 
-SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/global_state.c
-SOURCES += src/mygui.c src/nuklear.c 
+SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/settings.c
+SOURCES += src/mygui.c src/nuklear.c src/textures.c
 
-HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/global_state.h inc/mygui.h 
-HEADERS += inc/mygui_windows.h inc/mygui_widgets.h
+HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/mygui.h 
+HEADERS += inc/settings.h
 
 MAIN_APP := main.exe
 BUILD_DIR := build

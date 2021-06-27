@@ -1,13 +1,11 @@
-#ifndef _GLOBAL_STATE_HEADER_
-#define _GLOBAL_STATE_HEADER_
+#ifndef _SETTINGS_HEADER_
+#define _SETTINGS_HEADER_
 
-#include <stdbool.h>
 #include <SFML/Graphics.h>
-#include "csfml_window_util.h"
-#include "mygui.h"
+#include "nuklear_def.h"
 #include "doc.h"
 
-/* ----------------------------------------- Structs ---------------------------------------- */
+/* --------------------------------------------- Structs -------------------------------------------- */
 
 // settings
 typedef struct{
@@ -131,54 +129,18 @@ typedef struct{
     struct nk_font_atlas *atlas;                                                    /**< nuklear font atlas pointer */
 }settings_t;
 
-
-// global state
-typedef struct{
-    bool sfml_running;                      /**< state of SFML window, true if running, when set to false the window is killed*/
-    bool first_render_loop;                 /**< true if first time of render loop*/
-    window_mode_enum sfml_window_mode_flag; /**< flags SFML to change the window mode based on window_mode_enum enumerator*/
-    window_mode_enum sfml_window_mode;      /**< indicates what mode/state the window is based on window_mode_enum enumerator*/
-    char *window_title;                     /**< the title of the SFML window*/
-    char *topbar_title;                     /**< the title to be displayed on the topbar of the nuklear window*/
-    int topbar_menus_width;                 /**< width of the topbar menus, after wich the title coes on the x direction*/
-    int topbar_title_width;                 /**< width of the topbar title, where the move cursor/cmd should be possible*/
-    cursor_pos_enum cursor_pos;             /**< the cursor position based on SFML event mouse_moved, used rule calls on mouse clicks*/
-    struct mouse_button_held{               /**< stores the state of mouse buttons, 1 if held down*/
-        sfVector2i anchor;                      /**< stores the postion where the cursor has last clicked */
-        bool mouse_left;       
-        bool mouse_right;      
-        bool mouse_middle;       
-        bool mouse_xButton1;    
-        bool mouse_xButton2;    
-    }mouse_button_held;
-    texture_t *texture;                     /**< pointer to a texture struct containing nk_image for nuklear widgets */
-    settings_t settings;                    /**< pointer to settings structure */
-}state_t;
-
-/* ----------------------------------------- Globals ---------------------------------------- */
-
-// global state variable
-extern state_t state;
-
 /* ----------------------------------------- Functions -------------------------------------- */
 
 // initialize global state
-int global_state_init(char *cfg_filename);
+settings_t *settings_init(char *cfg_filename);
 
 
 // reload parameters
-void global_state_reload(char *theme, char *parameters, char *font);
+void settings_reload(settings_t *settings, char *theme, char *parameters, char *font);
 
 
 // end state and save config
-void global_state_end(void);
+void settings_end(settings_t *settings);
 
-
-// gui style
-void mygui_styles(struct nk_context *context);
-
-
-// get current parameter define font
-struct nk_user_font *global_state_get_active_font(void);
 
 #endif

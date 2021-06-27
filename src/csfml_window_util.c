@@ -1,6 +1,14 @@
 #include "csfml_window_util.h"
 #include <stdbool.h>
 
+/* ----------------------------------------- Macros ----------------------------------------- */
+
+// check if number is inside a range
+#define IS_INSIDE_RANGE(x, a, b) ((a) <= (x) && (x) < (b))
+
+// check if a coordenate is inside a box defined by a top left position and its width and height
+#define IS_INSIDE_BOX(px, py, x0, y0, x1, y1) (IS_INSIDE_RANGE(px,x0,x1) && IS_INSIDE_RANGE(py,y0,y1))
+
 /* ----------------------------------------- Windows implementation ------------------------- */
 
 #ifdef CSFML_SYSTEM_WINDOWS

@@ -2,24 +2,10 @@
 #define _CSFML_WINDOW_UTIL_HEADER_
 
 #include <SFML/Graphics.h>
-
-/* ----------------------------------------- Macros ----------------------------------------- */
-
-// check if number is inside a range
-#define IS_INSIDE_RANGE(x, a, b) ((a) <= (x) && (x) < (b))
-
-// check if a coordenate is inside a box defined by a top left position and its width and height
-#define IS_INSIDE_BOX(px, py, x0, y0, x1, y1) (IS_INSIDE_RANGE(px,x0,x1) && IS_INSIDE_RANGE(py,y0,y1))
+#include <stdlib.h>
+#include <stdbool.h>
 
 /* ----------------------------------------- Enumerators ------------------------------------ */
-
-// window mode
-typedef enum{
-    window_mode_minimized = 1,
-    window_mode_maximized,
-    window_mode_float,
-    window_mode_fullscreen
-}window_mode_enum;
 
 // types of cursors
 typedef enum{
@@ -48,6 +34,20 @@ typedef enum{
     cursor_pos_border_w,
     cursor_pos_topbar
 }cursor_pos_enum;
+
+/* ----------------------------------------- Structs ---------------------------------------- */
+
+typedef struct{
+    cursor_pos_enum cursor_pos;             /**< the cursor position based on SFML event mouse_moved, used rule calls on mouse clicks*/
+    struct mouse_button_held{               /**< stores the state of mouse buttons, 1 if held down*/
+        sfVector2i anchor;                  /**< stores the postion where the cursor has last clicked */
+        bool mouse_left;       
+        bool mouse_right;      
+        bool mouse_middle;       
+        bool mouse_xButton1;    
+        bool mouse_xButton2;    
+    }mouse_button_held;
+}mouse_info_t;
 
 /* ----------------------------------------- Functions -------------------------------------- */
 

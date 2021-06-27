@@ -5,15 +5,7 @@
 #include <assert.h>
 #include <SFML/Graphics.h>
 
-#ifndef NK_NUKLEAR_H_
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_STANDARD_VARARGS
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#include <nuklear.h>
-#endif
+#include "nuklear_def.h"
 
 NK_API struct nk_context   *nk_csfml_init(sfRenderWindow *window, const struct nk_user_font *font);
 NK_API void                 nk_csfml_font_stash_begin(struct nk_font_atlas **atlas);

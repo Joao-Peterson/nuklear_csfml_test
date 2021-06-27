@@ -4,12 +4,21 @@
 #include <stdint.h>
 #include <string.h>
 #include "doc.h"
-#include "global_state.h"
 #include "stb_image.h"
-#include "mygui_widgets.h"
-#include "mygui_windows.h"
+#include "settings.h"
+#include "nuklear_csfml.h"
 
-/* --------------------------------------------- Functions ------------------------------------------ */
+/* --------------------------------------------- Macros --------------------------------------------- */
+
+// macro get nk_color from cfg file. Ex: get_color_cfg_nk("body")
+#define get_color_cfg_nk(style_option) nk_rgba_hex(style_get(style_option, char*))
+
+// flags for auxiliary windows
+#define MYGUI_WINDOWS_FLAGS (                                           \
+NK_WINDOW_TITLE  | NK_WINDOW_MOVABLE  | NK_WINDOW_SCALABLE         |    \
+NK_WINDOW_BORDER | NK_WINDOW_CLOSABLE | NK_WINDOW_SCROLL_AUTO_HIDE | NK_WINDOW_MINIMIZABLE )
+
+/* --------------------------------------------- Aux Functions -------------------------------------- */
 
 // get a string width accordingly with the context font
 float get_text_width(struct nk_context *context, char *text){
@@ -17,8 +26,332 @@ float get_text_width(struct nk_context *context, char *text){
 }
 
 
+// return rect centered in a top window by proportions in percent
+struct nk_rect mygui_rect_window_centered_by_scale(int w_percent, int h_percent, int top_w, int top_h){
+    struct nk_rect rect;
+    rect.w = top_w * ( w_percent / 100.0);
+    rect.h = top_h * ( h_percent / 100.0);
+    rect.x = (top_w - rect.w) / 2.0;
+    rect.y = (top_h - rect.h) / 2.0;
+    return rect;
+}
+
+
+// update window state and resize/move it
+void nk_window_show_update_size(int window_w, int window_h, struct nk_context *context, const char *name, int w_percent, int h_percent, enum nk_show_states state){
+    nk_window_show(context, name, state);
+
+    struct nk_rect visual_size = mygui_rect_window_centered_by_scale(w_percent, h_percent, window_w, window_h);
+
+    nk_window_set_size(context, name, nk_vec2(visual_size.w, visual_size.h));
+    nk_window_set_position(context, name, nk_vec2(visual_size.x, visual_size.y));
+}
+
+
+// get active font
+struct nk_user_font *mygui_get_active_font(mygui_interface_t *interface){
+    int index = 0;
+
+    doc *fonts = doc_get_ptr(interface->settings->cfg, "font.fonts");
+    for(doc_loop(font,fonts)){
+        doc *heights = doc_get_ptr(font, "heights");
+        for(doc_loop(height, heights)){
+
+            if(!strcmp(font->name, interface->settings->active_font) && (doc_get(height, ".", int) == interface->settings->parameters.text.font.height)){
+                struct nk_font *font_cursor = interface->settings->atlas->fonts;
+
+                for(int i = 0; i < index; i++)
+                    font_cursor = font_cursor->next;
+
+                return &font_cursor->handle;
+            }
+                
+            index++;
+        }
+    }    
+}
+
+
+// load fonts
+void mygui_load_fonts(mygui_interface_t *interface){
+    
+    // loads all fonts once
+    int i = 0;
+
+    interface->settings->fonts_names = (char**)calloc(interface->settings->fonts_size, sizeof(char*));
+
+    nk_csfml_font_stash_begin(&interface->settings->atlas);
+
+    doc *fonts = doc_get_ptr(interface->settings->cfg, "font.fonts");
+    for(doc_loop(font,fonts)){
+
+        char *file_path = doc_get(font, "file", char*);
+        interface->settings->fonts_names[i] = font->name;
+
+        doc *heights = doc_get_ptr(font, "heights");
+        for(doc_loop(height, heights)){
+            if(nk_font_atlas_add_from_file(interface->settings->atlas, file_path, doc_get(height, ".", int), NULL) == NULL){
+                printf("font file \"%s\" doesn't exist\n.", file_path);
+                exit(1);
+            }    
+        }
+
+        i++;
+    }
+    
+    nk_csfml_font_stash_end();
+
+    // if(settings->atlas != NULL){
+    //     nk_font_atlas_clear(settings->atlas);
+    // }
+
+    // nk_csfml_font_stash_begin(&settings->atlas);
+
+    // doc *fonts = doc_get_ptr(settings->cfg, "font.fonts");
+    // for(doc_loop(font,fonts)){
+
+    //     char *file_path = doc_get(font, "file", char*);
+    //     settings->fonts_names[i] = font->name;
+
+    //     doc *heights = doc_get_ptr(font, "heights");
+    //     for(doc_loop(height, heights)){
+    //         if(nk_font_atlas_add_from_file(settings->atlas, file_path, doc_get(height, ".", int), NULL) == NULL){
+    //             printf("font file \"%s\" doesn't exist\n.", file_path);
+    //             exit(1);
+    //         }    
+    //     }
+    // }
+    
+    // nk_csfml_font_stash_end();
+}
+
+/* --------------------------------------------- Styling -------------------------------------------- */
+
+// gui style
+void mygui_styles(struct nk_context *context, mygui_interface_t *interface){
+    
+    // font
+    nk_style_set_font(context, mygui_get_active_font(interface));
+    
+    // texture
+    if(interface->texture != NULL)
+        free_texture(interface->texture);
+
+    interface->texture = load_texture(interface->settings->theme.texture_file);
+
+    // menu window / groups
+    context->style.window.background = interface->settings->theme.window;
+    context->style.window.padding = nk_vec2(0,0);                                   // pad between window and groups
+    context->style.window.menu_border = 0;
+    context->style.window.menu_padding = nk_vec2(0,0);
+    context->style.window.spacing = nk_vec2(0,0);
+    // context->style.window.spacing.x = interface->settings->parameters.main_window.row.spacing.x;
+    // context->style.window.spacing.y = interface->settings->parameters.main_window.row.spacing.y;
+    context->style.window.group_padding = nk_vec2(0,0);                             // set zero padding between groups nesting
+    context->style.window.group_border = interface->settings->parameters.main_window.border.size;
+
+    // buttons
+    context->style.button.rounding = 0;
+    context->style.button.border = 0;                                  
+    context->style.button.normal = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.button.active = nk_style_item_color(interface->settings->theme.selected1);
+    context->style.button.hover = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.button.text_normal = interface->settings->theme.font;
+    context->style.button.text_hover = interface->settings->theme.font;
+    context->style.button.text_active = interface->settings->theme.font;
+
+    // menu button
+    context->style.menu_button.border = 0;                                  
+    context->style.menu_button.normal = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.menu_button.active = nk_style_item_color(interface->settings->theme.selected1);
+    context->style.menu_button.hover = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.menu_button.text_normal = interface->settings->theme.font;
+    context->style.menu_button.text_hover = interface->settings->theme.font;
+    context->style.menu_button.text_active = interface->settings->theme.font;
+
+    // contextual button, buttons inside menus/ combo boxes
+    context->style.window.contextual_padding = nk_vec2(0,0);
+    context->style.window.contextual_border = interface->settings->parameters.main_window.border.size;
+
+    context->style.contextual_button.border = 0;
+    context->style.contextual_button.normal = nk_style_item_color(interface->settings->theme.window);
+    context->style.contextual_button.active = nk_style_item_color(interface->settings->theme.selected1);
+    context->style.contextual_button.hover = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.contextual_button.text_normal = interface->settings->theme.font;
+    context->style.contextual_button.text_hover = interface->settings->theme.font;
+    context->style.contextual_button.text_active = interface->settings->theme.font;
+    context->style.contextual_button.padding.x = interface->settings->parameters.text.padding.contextual_button.x;
+    context->style.contextual_button.padding.y = interface->settings->parameters.text.padding.contextual_button.y;
+    
+    // combo box
+    context->style.window.combo_border = 0;
+    context->style.window.combo_border_color = interface->settings->theme.border;
+    context->style.window.combo_padding = nk_vec2(0,0);
+
+    context->style.combo.content_padding.x = interface->settings->parameters.text.padding.contextual_button.x;
+    context->style.combo.content_padding.y = interface->settings->parameters.text.padding.contextual_button.y;
+    context->style.combo.border = interface->settings->parameters.main_window.border.size;
+    context->style.combo.border_color = interface->settings->theme.border;
+    context->style.combo.label_normal = interface->settings->theme.font;
+    context->style.combo.label_active = interface->settings->theme.font;
+    context->style.combo.label_hover = interface->settings->theme.font;
+    context->style.combo.normal = nk_style_item_color(interface->settings->theme.window);
+    context->style.combo.active = nk_style_item_color(interface->settings->theme.selected1);
+    context->style.combo.hover = nk_style_item_color(interface->settings->theme.hover1);
+
+    context->style.combo.button.normal = nk_style_item_color(interface->settings->theme.window);
+    context->style.combo.button.active = nk_style_item_color(interface->settings->theme.selected1);
+    context->style.combo.button.hover = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.combo.button.padding = nk_vec2(7,7);
+    context->style.combo.button.text_normal = interface->settings->theme.font;
+    context->style.combo.button.text_active = interface->settings->theme.font;
+    context->style.combo.button.text_hover = interface->settings->theme.font;
+
+    // label
+    context->style.text.color = interface->settings->theme.font;
+
+    // windows
+    context->style.window.fixed_background = nk_style_item_color(interface->settings->theme.body);
+    context->style.window.border = interface->settings->parameters.main_window.border.size;
+    context->style.window.border_color = interface->settings->theme.border;
+    
+    context->style.window.header.normal = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.active = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.hover = nk_style_item_color(interface->settings->theme.topbar);
+
+    context->style.window.header.label_normal = interface->settings->theme.font;
+    context->style.window.header.label_active = interface->settings->theme.font;
+    context->style.window.header.label_hover = interface->settings->theme.font;
+
+    context->style.window.header.close_button.text_normal = interface->settings->theme.font;
+    context->style.window.header.close_button.text_active = interface->settings->theme.font;
+    context->style.window.header.close_button.text_hover = interface->settings->theme.font;
+    context->style.window.header.close_button.normal = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.close_button.active = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.close_button.hover = nk_style_item_color(interface->settings->theme.hover1);
+
+    context->style.window.header.minimize_button.text_normal = interface->settings->theme.font;
+    context->style.window.header.minimize_button.text_active = interface->settings->theme.font;
+    context->style.window.header.minimize_button.text_hover = interface->settings->theme.font;
+    context->style.window.header.minimize_button.normal = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.minimize_button.active = nk_style_item_color(interface->settings->theme.topbar);
+    context->style.window.header.minimize_button.hover = nk_style_item_color(interface->settings->theme.hover1);
+
+    context->style.window.scaler = nk_style_item_color(interface->settings->theme.font);
+
+    context->style.scrollh.active = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollh.normal = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollh.hover = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollh.cursor_active = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.scrollh.cursor_normal = nk_style_item_color(interface->settings->theme.border);
+    context->style.scrollh.cursor_hover = nk_style_item_color(interface->settings->theme.hover1);
+
+    context->style.scrollv.active = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollv.normal = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollv.hover = nk_style_item_color(interface->settings->theme.window);
+    context->style.scrollv.cursor_active = nk_style_item_color(interface->settings->theme.hover1);
+    context->style.scrollv.cursor_normal = nk_style_item_color(interface->settings->theme.border);
+    context->style.scrollv.cursor_hover = nk_style_item_color(interface->settings->theme.hover1);
+
+    // proprieties
+}
+
+/* --------------------------------------------- Windows -------------------------------------------- */
+
+// visual settings->window
+void mygui_window_visual(struct nk_context *context, mygui_interface_t *interface){
+
+    if(nk_begin(context, "Appearance", nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (interface->first_render_loop ? NK_WINDOW_HIDDEN : 0))){
+
+        nk_style_push_vec2(context, &context->style.window.group_padding, nk_vec2(interface->settings->parameters.main_window.group.padding.x, interface->settings->parameters.main_window.group.padding.y));
+
+        nk_layout_row_dynamic(context, nk_window_get_content_region_size(context).y, 1);
+
+        if(nk_group_begin(context, "Appearance_group", 0)){
+
+            nk_style_push_vec2(context, &context->style.window.spacing, nk_vec2(interface->settings->parameters.main_window.row.spacing.x, interface->settings->parameters.main_window.row.spacing.y));
+
+            char *label;
+            struct nk_vec2 combo_size;
+            combo_size.x = interface->settings->parameters.main_window.menu_dropdown.width;
+            combo_size.y = interface->settings->parameters.main_window.menu_dropdown.heigh;
+
+            // theme
+            nk_layout_row_begin(context, NK_STATIC, interface->settings->parameters.main_window.row.height, 3);       // first row                  
+            label = "Theme: ";
+            nk_layout_row_push(context, interface->settings->parameters.windows.settings.visual.label_to_widget_x_padding);
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            if(nk_combo_begin_label(context, interface->settings->active_theme, combo_size)){                         // combo box of themes
+                nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
+
+                for(doc_size_t i = 0; i < interface->settings->themes_size; i++){                                     // list itens
+                    if(nk_combo_item_label(context, interface->settings->themes[i], NK_TEXT_LEFT)){                   // call back on clicked item
+                        settings_reload(interface->settings, interface->settings->themes[i], NULL, NULL);
+                        mygui_styles(context, interface);                                                               // redo styles
+                    }
+                }
+
+                nk_combo_end(context);
+            }
+            nk_layout_row_end(context);
+
+
+            // scale
+            nk_layout_row_begin(context, NK_STATIC, interface->settings->parameters.main_window.row.height, 3);       // first row                  
+            label = "Scale: ";
+            nk_layout_row_push(context, interface->settings->parameters.windows.settings.visual.label_to_widget_x_padding);
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            if(nk_combo_begin_label(context, interface->settings->active_parameters, combo_size)){                     // combo box of themes
+                nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
+
+                for(doc_size_t i = 0; i < interface->settings->parameters_size; i++){                                 // list itens
+                    if(nk_combo_item_label(context, interface->settings->parameters_array[i], NK_TEXT_LEFT)){         // call back on clicked item
+                        settings_reload(interface->settings, NULL, interface->settings->parameters_array[i], NULL);
+                        mygui_styles(context, interface);                                                               // redo styles
+                    }
+                }
+
+                nk_combo_end(context);
+            }
+            nk_layout_row_end(context);
+
+            
+            // font
+            nk_layout_row_begin(context, NK_STATIC, interface->settings->parameters.main_window.row.height, 3);       // first row                  
+            label = "Font: ";
+            nk_layout_row_push(context, interface->settings->parameters.windows.settings.visual.label_to_widget_x_padding);
+            nk_label(context, label, NK_TEXT_LEFT);
+            nk_layout_row_push(context, combo_size.x);
+            if(nk_combo_begin_label(context, interface->settings->active_font, combo_size)){                          // combo box of themes
+                nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
+
+                for(doc_size_t i = 0; i < interface->settings->fonts_size; i++){                                      // list itens
+                    if(nk_combo_item_label(context, interface->settings->fonts_names[i], NK_TEXT_LEFT)){              // call back on clicked item
+                        settings_reload(interface->settings, NULL, NULL, interface->settings->fonts_names[i]);
+                        mygui_styles(context, interface);                                                               // redo styles
+                    }
+                }
+
+                nk_combo_end(context);
+            }
+            nk_layout_row_end(context);
+
+            nk_style_pop_vec2(context);
+            nk_group_end(context);
+        }
+
+        nk_style_pop_vec2(context);
+    }
+
+    nk_end(context);
+}
+
+/* --------------------------------------------- Main window ---------------------------------------- */
+
 // topbar
-void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
+void mygui_topbar(struct nk_context *context, mygui_interface_t *interface){
     char buffer1[200];
     char buffer2[200];
     char buffer3[200];
@@ -26,7 +359,7 @@ void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
     // topbar
 
     // temporary background style pushed into stack
-    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(state.settings.theme.topbar));
+    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(interface->settings->theme.topbar));
     if(nk_group_begin(context, "topbar", NK_WINDOW_NO_SCROLLBAR)){
 
         float menu_width_acc = 0;
@@ -34,14 +367,14 @@ void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
 
         // menus dropdown
         nk_menubar_begin(context);
-        nk_layout_row_begin(context, NK_STATIC, state.settings.parameters.main_window.topbar.height, 2 + 4); // +4 for the title text and 3 buttons, minimize, maximize and close
+        nk_layout_row_begin(context, NK_STATIC, interface->settings->parameters.main_window.topbar.height, 2 + 4); // +4 for the title text and 3 buttons, minimize, maximize and close
 
         // file
-        menu_button_width = get_text_width(context, "File") + state.settings.parameters.text.widget.padding;
+        menu_button_width = get_text_width(context, "File") + interface->settings->parameters.text.widget.padding;
         menu_width_acc += menu_button_width;
         nk_layout_row_push(context, menu_button_width);
-        if(nk_menu_begin_label(context, "File", NK_TEXT_CENTERED, nk_vec2(state.settings.parameters.main_window.menu_dropdown.width, state.settings.parameters.main_window.menu_dropdown.heigh))){
-            nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
+        if(nk_menu_begin_label(context, "File", NK_TEXT_CENTERED, nk_vec2(interface->settings->parameters.main_window.menu_dropdown.width, interface->settings->parameters.main_window.menu_dropdown.heigh))){
+            nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
 
             if(nk_menu_item_label(context, "New file", NK_TEXT_LEFT)){
                 
@@ -63,19 +396,21 @@ void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
         }
 
         // settings
-        menu_button_width = get_text_width(context, "Settings") + state.settings.parameters.text.widget.padding;
+        menu_button_width = get_text_width(context, "Settings") + interface->settings->parameters.text.widget.padding;
         menu_width_acc += menu_button_width;
         nk_layout_row_push(context, menu_button_width);
-        if(nk_menu_begin_label(context, "Settings", NK_TEXT_CENTERED, nk_vec2(state.settings.parameters.main_window.menu_dropdown.width, state.settings.parameters.main_window.menu_dropdown.heigh))){
+        if(nk_menu_begin_label(context, "Settings", NK_TEXT_CENTERED, nk_vec2(interface->settings->parameters.main_window.menu_dropdown.width, interface->settings->parameters.main_window.menu_dropdown.heigh))){
 
-            nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
+            nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
 
             if(nk_menu_item_label(context, "Appearance", NK_TEXT_LEFT)){
                 nk_window_show_update_size(
-                    window, context, 
+                    interface->window_w, 
+                    interface->window_h, 
+                    context, 
                     "Appearance", 
-                    state.settings.parameters.windows.settings.visual.size.scale.w,
-                    state.settings.parameters.windows.settings.visual.size.scale.h,
+                    interface->settings->parameters.windows.settings.visual.size.scale.w,
+                    interface->settings->parameters.windows.settings.visual.size.scale.h,
                     NK_SHOWN
                 );
             }
@@ -84,24 +419,24 @@ void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
         }
 
         // centered label 
-        state.topbar_title_width = nk_window_get_width(context) - menu_width_acc - 3 * state.settings.parameters.main_window.topbar.buttons.width; 
-        state.topbar_menus_width = menu_width_acc; 
-        nk_layout_row_push(context, state.topbar_title_width);
-        nk_label(context, state.topbar_title, NK_TEXT_CENTERED);
+        interface->topbar_title_width = nk_window_get_width(context) - menu_width_acc - 3 * interface->settings->parameters.main_window.topbar.buttons.width; 
+        interface->topbar_menus_width = menu_width_acc; 
+        nk_layout_row_push(context, interface->topbar_title_width);
+        nk_label(context, interface->topbar_title, NK_TEXT_CENTERED);
 
         // buttons
-        nk_layout_row_push(context, state.settings.parameters.main_window.topbar.buttons.width);
-        if(nk_button_image(context, state.texture->button.minimize)){        // minimize
-            state.sfml_window_mode_flag = window_mode_minimized;
+        nk_layout_row_push(context, interface->settings->parameters.main_window.topbar.buttons.width);
+        if(nk_button_image(context, interface->texture->button.minimize)){        // minimize
+            interface->window_mode_flag = window_mode_minimized;
         }
-        if(nk_button_image(context, state.texture->button.maximize)){        // maximize
-            if(state.sfml_window_mode == window_mode_maximized || state.sfml_window_mode == window_mode_fullscreen)
-                state.sfml_window_mode_flag = window_mode_float;
+        if(nk_button_image(context, interface->texture->button.maximize)){        // maximize
+            if(interface->window_mode == window_mode_maximized || interface->window_mode == window_mode_fullscreen)
+                interface->window_mode_flag = window_mode_float;
             else
-                state.sfml_window_mode_flag = window_mode_maximized;
+                interface->window_mode_flag = window_mode_maximized;
         }
-        if(nk_button_image(context, state.texture->button.close)){           // close
-            state.sfml_running = false;
+        if(nk_button_image(context, interface->texture->button.close)){           // close
+            interface->running_flag = false;
         }
 
         nk_layout_row_end(context);
@@ -115,9 +450,9 @@ void mygui_topbar(struct nk_context *context, sfRenderWindow *window){
 
 
 // sidebar
-void mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
+void mygui_sidebar(struct nk_context *context, mygui_interface_t *interface){
 
-    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(state.settings.theme.sidebar));
+    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(interface->settings->theme.sidebar));
     if(nk_group_begin(context, "sidebar", NK_WINDOW_NO_SCROLLBAR)){
         
 
@@ -128,18 +463,18 @@ void mygui_sidebar(struct nk_context *context, sfRenderWindow *window){
 
 
 // body
-void mygui_body(struct nk_context *context, sfRenderWindow *window){
-    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(state.settings.theme.body));
+void mygui_body(struct nk_context *context, mygui_interface_t *interface){
+    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(interface->settings->theme.body));
     if(nk_group_begin(context, "body", NK_WINDOW_NO_SCROLLBAR)){
         
         nk_layout_row_static(
             context, 
-            nk_window_get_height(context) - state.settings.parameters.main_window.topbar.height - state.settings.parameters.main_window.footer.height, 
-            state.settings.parameters.main_window.body.sidebar.width,
+            nk_window_get_height(context) - interface->settings->parameters.main_window.topbar.height - interface->settings->parameters.main_window.footer.height, 
+            interface->settings->parameters.main_window.body.sidebar.width,
              2
         );
 
-        mygui_sidebar(context, window);
+        mygui_sidebar(context, interface);
 
         nk_group_end(context);
     }
@@ -148,8 +483,8 @@ void mygui_body(struct nk_context *context, sfRenderWindow *window){
 
 
 // footer
-void mygui_footer(struct nk_context *context, sfRenderWindow *window){
-    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(state.settings.theme.footer));
+void mygui_footer(struct nk_context *context, mygui_interface_t *interface){
+    nk_style_push_style_item(context, &context->style.window.fixed_background, nk_style_item_color(interface->settings->theme.footer));
     if(nk_group_begin(context, "footer", NK_WINDOW_NO_SCROLLBAR)){
 
 
@@ -159,14 +494,56 @@ void mygui_footer(struct nk_context *context, sfRenderWindow *window){
 }
 
 
-/* --------------------------------------------- Public functions ----------------------------------- */
+/* --------------------------------------------- Functions ------------------------------------------ */
+
+// initialize mygui interface
+mygui_interface_t *mygui_init(settings_t *settings){
+
+    mygui_interface_t *interface = (mygui_interface_t*)calloc(1, sizeof(mygui_interface_t));
+
+    interface->running_flag = true;                      
+    interface->first_render_loop = true;              
+    interface->window_mode_flag = 0;
+    
+    interface->settings = settings;              
+
+    interface->topbar_title = interface->settings->parameters.main_window.title;                     
+
+    interface->texture = NULL;                                                      // will be laoded by mygui_styles()                     
+
+    interface->window_w = interface->settings->parameters.main_window.size.w;                 
+    interface->window_h = interface->settings->parameters.main_window.size.h;                 
+
+    interface->window_mode = window_mode_float;
+    if(interface->settings->parameters.main_window.size.fullscreen){
+        interface->window_mode = window_mode_fullscreen;
+    }
+    else if(interface->settings->parameters.main_window.size.maximized){
+        interface->window_mode = window_mode_maximized;
+    }
+
+    interface->topbar_menus_width = 0;                 
+    interface->topbar_title_width = 0;
+
+    mygui_load_fonts(interface);                 
+
+    return interface;
+}
+
+// end the gui interface
+void mygui_end(mygui_interface_t *interface){
+
+    if(interface->texture != NULL)
+        free_texture(interface->texture);
+    
+    free(interface);
+}
 
 // main gui routine
-void mygui(struct nk_context *context, sfRenderWindow *window){
-    sfVector2u window_size = sfRenderWindow_getSize(window);
+void mygui(struct nk_context *context, mygui_interface_t *interface){
 
     // main gui window
-    if(nk_begin(context, "main_window", nk_rect(0, 0, window_size.x, window_size.y), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){  
+    if(nk_begin(context, "main_window", nk_rect(0, 0, interface->window_w, interface->window_h), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){  
 
         // main group inside main window
         nk_layout_row_dynamic(context, nk_window_get_height(context), 1);
@@ -175,126 +552,29 @@ void mygui(struct nk_context *context, sfRenderWindow *window){
             float main_window_height = nk_window_get_height(context);
 
             // topbar
-            nk_layout_row_dynamic(context, state.settings.parameters.main_window.topbar.height, 1);
-            mygui_topbar(context, window);
+            nk_layout_row_dynamic(context, interface->settings->parameters.main_window.topbar.height, 1);
+            mygui_topbar(context, interface);
 
             // body
-            nk_layout_row_dynamic(context, main_window_height - state.settings.parameters.main_window.topbar.height - state.settings.parameters.main_window.footer.height, 1);
-            mygui_body(context, window);
+            nk_layout_row_dynamic(context, interface->window_h - interface->settings->parameters.main_window.topbar.height - interface->settings->parameters.main_window.footer.height, 1);
+            mygui_body(context, interface);
 
             // footer context
-            nk_layout_row_dynamic(context, state.settings.parameters.main_window.footer.height, 1);
-            mygui_footer(context, window);
+            nk_layout_row_dynamic(context, interface->settings->parameters.main_window.footer.height, 1);
+            mygui_footer(context, interface);
 
         }
         nk_group_end(context);
     }
     nk_end(context);
     
+
     // floating windows
-    mygui_windows(context, window);
+    mygui_window_visual(context, interface);
+
+
+
+    if(interface->first_render_loop)
+        interface->first_render_loop = false;
 }
 
-
-// =======================================================================
-//                        Scroll wheel
-// =======================================================================
-
-// static int
-// ui_piemenu(struct nk_context *ctx, struct nk_vec2 pos, float radius,
-//             struct nk_image *icons, int item_count)
-// {
-//     int ret = -1;
-//     struct nk_rect total_space;
-//     struct nk_rect bounds;
-//     int active_item = 0;
-
-//     /* pie menu popup */
-//     struct nk_color border = ctx->style.window.border_color;
-//     struct nk_style_item background = ctx->style.window.fixed_background;
-//     ctx->style.window.fixed_background = nk_style_item_hide();
-//     ctx->style.window.border_color = nk_rgba(0,0,0,0);
-
-//     total_space  = nk_window_get_content_region(ctx);
-//     ctx->style.window.spacing = nk_vec2(0,0);
-//     ctx->style.window.padding = nk_vec2(0,0);
-
-//     if (nk_popup_begin(ctx, NK_POPUP_STATIC, "piemenu", NK_WINDOW_NO_SCROLLBAR,
-//         nk_rect(pos.x - total_space.x - radius, pos.y - radius - total_space.y,
-//         2*radius,2*radius)))
-//     {
-//         int i = 0;
-//         struct nk_command_buffer* out = nk_window_get_canvas(ctx);
-//         const struct nk_input *in = &ctx->input;
-
-//         total_space = nk_window_get_content_region(ctx);
-//         ctx->style.window.spacing = nk_vec2(4,4);
-//         ctx->style.window.padding = nk_vec2(8,8);
-//         nk_layout_row_dynamic(ctx, total_space.h, 1);
-//         nk_widget(&bounds, ctx);
-
-//         /* outer circle */
-//         nk_fill_circle(out, bounds, nk_rgb(50,50,50));
-//         {
-//             /* circle buttons */
-//             float step = (2 * 3.141592654f) / (float)(MAX(1,item_count));
-//             float a_min = 0; float a_max = step;
-
-//             struct nk_vec2 center = nk_vec2(bounds.x + bounds.w / 2.0f, bounds.y + bounds.h / 2.0f);
-//             struct nk_vec2 drag = nk_vec2(in->mouse.pos.x - center.x, in->mouse.pos.y - center.y);
-//             float angle = (float)atan2(drag.y, drag.x);
-//             if (angle < -0.0f) angle += 2.0f * 3.141592654f;
-//             active_item = (int)(angle/step);
-
-//             for (i = 0; i < item_count; ++i) {
-//                 struct nk_rect content;
-//                 float rx, ry, dx, dy, a;
-//                 nk_fill_arc(out, center.x, center.y, (bounds.w/2.0f),
-//                     a_min, a_max, (active_item == i) ? nk_rgb(45,100,255): nk_rgb(60,60,60));
-
-//                 /* separator line */
-//                 rx = bounds.w/2.0f; ry = 0;
-//                 dx = rx * (float)cos(a_min) - ry * (float)sin(a_min);
-//                 dy = rx * (float)sin(a_min) + ry * (float)cos(a_min);
-//                 nk_stroke_line(out, center.x, center.y,
-//                     center.x + dx, center.y + dy, 1.0f, nk_rgb(50,50,50));
-
-//                 /* button content */
-//                 a = a_min + (a_max - a_min)/2.0f;
-//                 rx = bounds.w/2.5f; ry = 0;
-//                 content.w = 30; content.h = 30;
-//                 content.x = center.x + ((rx * (float)cos(a) - ry * (float)sin(a)) - content.w/2.0f);
-//                 content.y = center.y + (rx * (float)sin(a) + ry * (float)cos(a) - content.h/2.0f);
-//                 nk_draw_image(out, content, &icons[i], nk_rgb(255,255,255));
-//                 a_min = a_max; a_max += step;
-//             }
-//         }
-//         {
-//             /* inner circle */
-//             struct nk_rect inner;
-//             inner.x = bounds.x + bounds.w/2 - bounds.w/4;
-//             inner.y = bounds.y + bounds.h/2 - bounds.h/4;
-//             inner.w = bounds.w/2; inner.h = bounds.h/2;
-//             nk_fill_circle(out, inner, nk_rgb(45,45,45));
-
-//             /* active icon content */
-//             bounds.w = inner.w / 2.0f;
-//             bounds.h = inner.h / 2.0f;
-//             bounds.x = inner.x + inner.w/2 - bounds.w/2;
-//             bounds.y = inner.y + inner.h/2 - bounds.h/2;
-//             nk_draw_image(out, bounds, &icons[active_item], nk_rgb(255,255,255));
-//         }
-//         nk_layout_space_end(ctx);
-//         if (!nk_input_is_mouse_down(&ctx->input, NK_BUTTON_RIGHT)) {
-//             nk_popup_close(ctx);
-//             ret = active_item;
-//         }
-//     } else ret = -2;
-//     ctx->style.window.spacing = nk_vec2(4,4);
-//     ctx->style.window.padding = nk_vec2(8,8);
-//     nk_popup_end(ctx);
-
-//     ctx->style.window.fixed_background = background;
-//     ctx->style.window.border_color = border;
-//     return ret;
-// }
