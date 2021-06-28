@@ -7,6 +7,14 @@
 
 /* --------------------------------------------- Structs -------------------------------------------- */
 
+// key struct
+typedef struct{
+    sfKeyCode code;                                                                 /**< sfKeyCode enumerator value */
+    bool ctrl;                                                                      /**< boolean to indicate if the shortcut needs a combination of ctrl, shift, alt */
+    bool shift;
+    bool alt;
+}key_combo_t;
+
 // settings
 typedef struct{
     doc *cfg;                                                                       /**< pointer to doc structure containg all configutation */
@@ -119,8 +127,12 @@ typedef struct{
         char *texture_file;
     }theme;
 
-    struct keys{
-        sfKeyCode fullscreen;
+    struct keys{                                                                    /**< short cut keys for actions */
+        key_combo_t fullscreen;                                                     
+        key_combo_t up_scale_plus;
+        key_combo_t up_scale_equal;
+        key_combo_t down_scale_minus;
+        key_combo_t down_scale_hyphen;
     }keys;
 
     char *active_font;                                                              /**< name of active font */
@@ -142,5 +154,7 @@ void settings_reload(settings_t *settings, char *theme, char *parameters, char *
 // end state and save config
 void settings_end(settings_t *settings);
 
+// check key based on settings
+bool check_key_combo(sfKeyEvent key, key_combo_t type);
 
 #endif

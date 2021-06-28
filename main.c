@@ -18,11 +18,428 @@
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
 
+
+void key_logger(sfEvent event){
+
+    switch(event.key.code){
+        case sfKeyUnknown:
+            printf("Keyboard press: key Unknown\n");
+        break;
+
+        case sfKeyA:
+            printf("Keyboard press: key A\n");
+        break;            
+
+        case sfKeyB:
+            printf("Keyboard press: key B\n");
+        break;            
+
+        case sfKeyC:
+            printf("Keyboard press: key C\n");
+        break;            
+
+        case sfKeyD:
+            printf("Keyboard press: key D\n");
+        break;            
+
+        case sfKeyE:
+            printf("Keyboard press: key E\n");
+        break;            
+
+        case sfKeyF:
+            printf("Keyboard press: key F\n");
+        break;            
+
+        case sfKeyG:
+            printf("Keyboard press: key G\n");
+        break;            
+
+        case sfKeyH:
+            printf("Keyboard press: key H\n");
+        break;            
+
+        case sfKeyI:
+            printf("Keyboard press: key I\n");
+        break;            
+
+        case sfKeyJ:
+            printf("Keyboard press: key J\n");
+        break;            
+
+        case sfKeyK:
+            printf("Keyboard press: key K\n");
+        break;            
+
+        case sfKeyL:
+            printf("Keyboard press: key L\n");
+        break;            
+
+        case sfKeyM:
+            printf("Keyboard press: key M\n");
+        break;            
+
+        case sfKeyN:
+            printf("Keyboard press: key N\n");
+        break;            
+
+        case sfKeyO:
+            printf("Keyboard press: key O\n");
+        break;            
+
+        case sfKeyP:
+            printf("Keyboard press: key P\n");
+        break;            
+
+        case sfKeyQ:
+            printf("Keyboard press: key Q\n");
+        break;            
+
+        case sfKeyR:
+            printf("Keyboard press: key R\n");
+        break;            
+
+        case sfKeyS:
+            printf("Keyboard press: key S\n");
+        break;            
+
+        case sfKeyT:
+            printf("Keyboard press: key T\n");
+        break;            
+
+        case sfKeyU:
+            printf("Keyboard press: key U\n");
+        break;            
+
+        case sfKeyV:
+            printf("Keyboard press: key V\n");
+        break;            
+
+        case sfKeyW:
+            printf("Keyboard press: key W\n");
+        break;            
+
+        case sfKeyX:
+            printf("Keyboard press: key X\n");
+        break;            
+
+        case sfKeyY:
+            printf("Keyboard press: key Y\n");
+        break;            
+
+        case sfKeyZ:
+            printf("Keyboard press: key Z\n");
+        break;            
+
+        case sfKeyNum0:
+            printf("Keyboard press: key Num0\n");
+        break;         
+
+        case sfKeyNum1:
+            printf("Keyboard press: key Num1\n");
+        break;         
+
+        case sfKeyNum2:
+            printf("Keyboard press: key Num2\n");
+        break;         
+
+        case sfKeyNum3:
+            printf("Keyboard press: key Num3\n");
+        break;         
+
+        case sfKeyNum4:
+            printf("Keyboard press: key Num4\n");
+        break;         
+
+        case sfKeyNum5:
+            printf("Keyboard press: key Num5\n");
+        break;         
+
+        case sfKeyNum6:
+            printf("Keyboard press: key Num6\n");
+        break;         
+
+        case sfKeyNum7:
+            printf("Keyboard press: key Num7\n");
+        break;         
+
+        case sfKeyNum8:
+            printf("Keyboard press: key Num8\n");
+        break;         
+
+        case sfKeyNum9:
+            printf("Keyboard press: key Num9\n");
+        break;         
+
+        case sfKeyEscape:
+            printf("Keyboard press: key Escape\n");
+        break;       
+
+        case sfKeyLControl:
+            printf("Keyboard press: key LControl\n");
+        break;     
+
+        case sfKeyLShift:
+            printf("Keyboard press: key LShift\n");
+        break;       
+
+        case sfKeyLAlt:
+            printf("Keyboard press: key LAlt\n");
+        break;         
+
+        case sfKeyLSystem:
+            printf("Keyboard press: key LSystem\n");
+        break;      
+
+        case sfKeyRControl:
+            printf("Keyboard press: key RControl\n");
+        break;     
+
+        case sfKeyRShift:
+            printf("Keyboard press: key RShift\n");
+        break;       
+
+        case sfKeyRAlt:
+            printf("Keyboard press: key RAlt\n");
+        break;         
+
+        case sfKeyRSystem:
+            printf("Keyboard press: key RSystem\n");
+        break;      
+
+        case sfKeyMenu:
+            printf("Keyboard press: key Menu\n");
+        break;         
+
+        case sfKeyLBracket:
+            printf("Keyboard press: key LBracket\n");
+        break;     
+
+        case sfKeyRBracket:
+            printf("Keyboard press: key RBracket\n");
+        break;     
+
+        case sfKeySemicolon:
+            printf("Keyboard press: key Semicolon\n");
+        break;    
+
+        case sfKeyComma:
+            printf("Keyboard press: key Comma\n");
+        break;        
+
+        case sfKeyPeriod:
+            printf("Keyboard press: key Period\n");
+        break;       
+
+        case sfKeyQuote:
+            printf("Keyboard press: key Quote\n");
+        break;        
+
+        case sfKeySlash:
+            printf("Keyboard press: key Slash\n");
+        break;        
+
+        case sfKeyBackslash:
+            printf("Keyboard press: key Backslash\n");
+        break;    
+
+        case sfKeyTilde:
+            printf("Keyboard press: key Tilde\n");
+        break;        
+
+        case sfKeyEqual:
+            printf("Keyboard press: key Equal\n");
+        break;        
+
+        case sfKeyHyphen:
+            printf("Keyboard press: key Hyphen\n");
+        break;       
+
+        case sfKeySpace:
+            printf("Keyboard press: key Space\n");
+        break;        
+
+        case sfKeyEnter:
+            printf("Keyboard press: key Enter\n");
+        break;        
+
+        case sfKeyBackspace:
+            printf("Keyboard press: key Backspace\n");
+        break;    
+
+        case sfKeyTab:
+            printf("Keyboard press: key Tab\n");
+        break;          
+
+        case sfKeyPageUp:
+            printf("Keyboard press: key PageUp\n");
+        break;       
+
+        case sfKeyPageDown:
+            printf("Keyboard press: key PageDown\n");
+        break;     
+
+        case sfKeyEnd:
+            printf("Keyboard press: key End\n");
+        break;          
+
+        case sfKeyHome:
+            printf("Keyboard press: key Home\n");
+        break;         
+
+        case sfKeyInsert:
+            printf("Keyboard press: key Insert\n");
+        break;       
+
+        case sfKeyDelete:
+            printf("Keyboard press: key Delete\n");
+        break;       
+
+        case sfKeyAdd:
+            printf("Keyboard press: key Add\n");
+        break;          
+
+        case sfKeySubtract:
+            printf("Keyboard press: key Subtract\n");
+        break;     
+
+        case sfKeyMultiply:
+            printf("Keyboard press: key Multiply\n");
+        break;     
+
+        case sfKeyDivide:
+            printf("Keyboard press: key Divide\n");
+        break;       
+
+        case sfKeyLeft:
+            printf("Keyboard press: key Left\n");
+        break;         
+
+        case sfKeyRight:
+            printf("Keyboard press: key Right\n");
+        break;        
+
+        case sfKeyUp:
+            printf("Keyboard press: key Up\n");
+        break;           
+
+        case sfKeyDown:
+            printf("Keyboard press: key Down\n");
+        break;         
+
+        case sfKeyNumpad0:
+            printf("Keyboard press: key Numpad0\n");
+        break;      
+
+        case sfKeyNumpad1:
+            printf("Keyboard press: key Numpad1\n");
+        break;      
+
+        case sfKeyNumpad2:
+            printf("Keyboard press: key Numpad2\n");
+        break;      
+
+        case sfKeyNumpad3:
+            printf("Keyboard press: key Numpad3\n");
+        break;      
+
+        case sfKeyNumpad4:
+            printf("Keyboard press: key Numpad4\n");
+        break;      
+
+        case sfKeyNumpad5:
+            printf("Keyboard press: key Numpad5\n");
+        break;      
+
+        case sfKeyNumpad6:
+            printf("Keyboard press: key Numpad6\n");
+        break;      
+
+        case sfKeyNumpad7:
+            printf("Keyboard press: key Numpad7\n");
+        break;      
+
+        case sfKeyNumpad8:
+            printf("Keyboard press: key Numpad8\n");
+        break;      
+
+        case sfKeyNumpad9:
+            printf("Keyboard press: key Numpad9\n");
+        break;      
+
+        case sfKeyF1:
+            printf("Keyboard press: key F1\n");
+        break;           
+
+        case sfKeyF2:
+            printf("Keyboard press: key F2\n");
+        break;           
+
+        case sfKeyF3:
+            printf("Keyboard press: key F3\n");
+        break;           
+
+        case sfKeyF4:
+            printf("Keyboard press: key F4\n");
+        break;           
+
+        case sfKeyF5:
+            printf("Keyboard press: key F5\n");
+        break;           
+
+        case sfKeyF6:
+            printf("Keyboard press: key F6\n");
+        break;           
+
+        case sfKeyF7:
+            printf("Keyboard press: key F7\n");
+        break;           
+
+        case sfKeyF8:
+            printf("Keyboard press: key F8\n");
+        break;           
+
+        case sfKeyF9:
+            printf("Keyboard press: key F9\n");
+        break;           
+
+        case sfKeyF10:
+            printf("Keyboard press: key F10\n");
+        break;          
+
+        case sfKeyF11:
+            printf("Keyboard press: key F11\n");
+        break;          
+
+        case sfKeyF12:
+            printf("Keyboard press: key F12\n");
+        break;          
+
+        case sfKeyF13:
+            printf("Keyboard press: key F13\n");
+        break;          
+
+        case sfKeyF14:
+            printf("Keyboard press: key F14\n");
+        break;          
+
+        case sfKeyF15:
+            printf("Keyboard press: key F15\n");
+        break;          
+
+        case sfKeyPause:
+            printf("Keyboard press: key Pause\n");
+        break;        
+
+    }
+}
+
+
 int main(int argc, char **argv){
 
     /* settings */
     settings_t *settings = settings_init(CFG_FILE);
     if(settings == NULL){
+        printf("Failed to load settings file!\n");
         return 0;
     }
 
@@ -52,7 +469,8 @@ int main(int argc, char **argv){
 
     /* mygui init */
     mygui_interface_t *interface = mygui_init(settings);
-    if(settings == NULL){
+    if(interface == NULL){
+        printf("Failed to initialize mygui interface!\n");
         return 0;
     }
 
@@ -60,6 +478,10 @@ int main(int argc, char **argv){
     /* nuklear */
     struct nk_context *context;                                                     // nuklear context
     context = nk_csfml_init(window, mygui_get_active_font(interface));
+    if(context == NULL){
+        printf("Failed to initialize nuklear context!\n");
+        return 0;
+    }
     
     /* video settings */
     mygui_styles(context, interface);                                               // textures and styles
@@ -87,16 +509,20 @@ int main(int argc, char **argv){
         /* handle events loop */
         while(sfRenderWindow_pollEvent(window, &event)){
             switch(event.type){                                                     // sfml events
-                case sfEvtClosed:
+
+                case sfEvtClosed:                                                   // ON CLOSE
                     interface->running_flag = false;
                     sfRenderWindow_close(window);
                 break;
 
-                case sfEvtResized:                                                  // on window resize
+
+                case sfEvtResized:                                                  // ON WINDOW RESIZE
                     glViewport(0, 0, event.size.width, event.size.height);
                 break;
 
-                case sfEvtMouseMoved:                                               // check mouse on the sides of window for resize
+
+                case sfEvtMouseMoved:                                               // ON MOUSE MOVE
+
                     // only apply window transform logic when not in fulscreen/maximized mode
                     if(interface->window_mode != window_mode_fullscreen && interface->window_mode != window_mode_maximized){
                         if(mouse.mouse_button_held.mouse_left){                     // moving while helding the mouse left down
@@ -123,7 +549,8 @@ int main(int argc, char **argv){
                     }
                 break;
 
-                case sfEvtMouseButtonPressed:
+
+                case sfEvtMouseButtonPressed:                                       // ON MOUSE BUTTON PRESS
                     switch(event.mouseButton.button){                               
                         case sfMouseLeft:
                             mouse.mouse_button_held.mouse_left = true;
@@ -133,7 +560,9 @@ int main(int argc, char **argv){
                     }
                 break;
 
-                case sfEvtMouseButtonReleased:
+
+                case sfEvtMouseButtonReleased:                                      // ON MOUSE BUTTON RELEASE
+                
                     switch(event.mouseButton.button){
                         case sfMouseLeft:
                             mouse.mouse_button_held.mouse_left = false;
@@ -141,16 +570,23 @@ int main(int argc, char **argv){
                     }
                 break;
 
-                case sfEvtLostFocus:                                                // reset held mouse buttons if they fly off the window
-                    mouse.mouse_button_held.mouse_left = false;
-                    mouse.mouse_button_held.mouse_right = false;
-                    mouse.mouse_button_held.mouse_middle = false;
-                    mouse.mouse_button_held.mouse_xButton1 = false;
-                    mouse.mouse_button_held.mouse_xButton2 = false;
-                break;
 
-                case sfEvtKeyPressed:
-                    if(event.key.code == settings->keys.fullscreen){                // fullscreen key
+                // case sfEvtMouseLeft:                                                // ON MOUSE LEFT THE WINDOW
+                // case sfEvtLostFocus:                                                // ON WINDOW LOST FOCUS                                                
+                //     // reset held mouse buttons if they fly off the window
+                //     mouse.mouse_button_held.mouse_left = false;
+                //     mouse.mouse_button_held.mouse_right = false;
+                //     mouse.mouse_button_held.mouse_middle = false;
+                //     mouse.mouse_button_held.mouse_xButton1 = false;
+                //     mouse.mouse_button_held.mouse_xButton2 = false;
+                // break;
+
+
+                case sfEvtKeyPressed:                                               // ON KEY PRESS
+                    // TODO REMOVE
+                    // key_logger(event);
+
+                    if(check_key_combo(event.key, settings->keys.fullscreen)){ // fullscreen key
                         if(interface->window_mode == window_mode_fullscreen){
                             interface->window_mode_flag = window_mode_float;
                         }
@@ -158,7 +594,19 @@ int main(int argc, char **argv){
                             interface->window_mode_flag = window_mode_fullscreen;
                         }
                     }
+                    
+                                                                                    // scale up mygui 
+                    if(check_key_combo(event.key, settings->keys.up_scale_plus) || check_key_combo(event.key, settings->keys.up_scale_equal)){                                                              
+                        interface->scale_up_flag = true;      
+                    }
+
+                                                                                    // scale down mygui 
+                    if(check_key_combo(event.key, settings->keys.down_scale_minus) || check_key_combo(event.key, settings->keys.down_scale_hyphen)){                                                              
+                        interface->scale_down_flag = true;      
+                    }
+                    
                 break;
+
             }
 
             nk_csfml_handle_event(&event);                                          // nuklear events

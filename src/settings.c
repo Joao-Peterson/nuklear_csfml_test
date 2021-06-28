@@ -1,6 +1,7 @@
 #include "settings.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "doc.h"
 #include "doc_json.h"
 
@@ -99,13 +100,36 @@ void read_settings(settings_t *settings){
     settings->theme.texture_file                                  = doc_get(theme, "texture_file", char*);
 
 
-    // shortcut keys
-    settings->keys.fullscreen = doc_get(settings->cfg, "keys.fullscreen", int);
-
-
     // fonts
     settings->active_font = doc_get(settings->cfg, "font.active", char*);
     settings->fonts_size = doc_get(settings->cfg, "font.size", int);
+
+
+    // shortcut keys
+    settings->keys.fullscreen.code = doc_get(settings->cfg, "keys.fullscreen.code", int);
+    settings->keys.fullscreen.ctrl = doc_get(settings->cfg, "keys.fullscreen.ctrl", bool);
+    settings->keys.fullscreen.shift = doc_get(settings->cfg, "keys.fullscreen.shift", bool);
+    settings->keys.fullscreen.alt = doc_get(settings->cfg, "keys.fullscreen.alt", bool);
+
+    settings->keys.up_scale_plus.code = doc_get(settings->cfg, "keys.up_scale_plus.code", int);
+    settings->keys.up_scale_plus.ctrl = doc_get(settings->cfg, "keys.up_scale_plus.ctrl", bool);
+    settings->keys.up_scale_plus.shift = doc_get(settings->cfg, "keys.up_scale_plus.shift", bool);
+    settings->keys.up_scale_plus.alt = doc_get(settings->cfg, "keys.up_scale_plus.alt", bool);
+
+    settings->keys.up_scale_equal.code = doc_get(settings->cfg, "keys.up_scale_equal.code", int);
+    settings->keys.up_scale_equal.ctrl = doc_get(settings->cfg, "keys.up_scale_equal.ctrl", bool);
+    settings->keys.up_scale_equal.shift = doc_get(settings->cfg, "keys.up_scale_equal.shift", bool);
+    settings->keys.up_scale_equal.alt = doc_get(settings->cfg, "keys.up_scale_equal.alt", bool);
+
+    settings->keys.down_scale_minus.code = doc_get(settings->cfg, "keys.down_scale_minus.code", int);
+    settings->keys.down_scale_minus.ctrl = doc_get(settings->cfg, "keys.down_scale_minus.ctrl", bool);
+    settings->keys.down_scale_minus.shift = doc_get(settings->cfg, "keys.down_scale_minus.shift", bool);
+    settings->keys.down_scale_minus.alt = doc_get(settings->cfg, "keys.down_scale_minus.alt", bool);
+
+    settings->keys.down_scale_hyphen.code = doc_get(settings->cfg, "keys.down_scale_hyphen.code", int);
+    settings->keys.down_scale_hyphen.ctrl = doc_get(settings->cfg, "keys.down_scale_hyphen.ctrl", bool);
+    settings->keys.down_scale_hyphen.shift = doc_get(settings->cfg, "keys.down_scale_hyphen.shift", bool);
+    settings->keys.down_scale_hyphen.alt = doc_get(settings->cfg, "keys.down_scale_hyphen.alt", bool);
 }
 
 
@@ -181,12 +205,35 @@ void write_settings(settings_t *settings){
     doc_set_string(theme, "texture_file", char* , settings->theme.texture_file, strlen(settings->theme.texture_file ) + 1);
 
 
-    // shortcut keys
-    doc_set(settings->cfg, "keys.fullscreen", int, settings->keys.fullscreen);
-
-
     // fonts
     doc_set_string(settings->cfg, "font.active", char*, settings->active_font, strlen(settings->active_font) + 1);
+
+
+    // shortcut keys
+    doc_set(settings->cfg, "keys.fullscreen.code", int, settings->keys.fullscreen.code);
+    doc_set(settings->cfg, "keys.fullscreen.ctrl", bool, settings->keys.fullscreen.ctrl);
+    doc_set(settings->cfg, "keys.fullscreen.shift", bool, settings->keys.fullscreen.shift);
+    doc_set(settings->cfg, "keys.fullscreen.alt", bool, settings->keys.fullscreen.alt);
+
+    doc_set(settings->cfg, "keys.up_scale_plus.code", int, settings->keys.up_scale_plus.code);
+    doc_set(settings->cfg, "keys.up_scale_plus.ctrl", bool, settings->keys.up_scale_plus.ctrl);
+    doc_set(settings->cfg, "keys.up_scale_plus.shift", bool, settings->keys.up_scale_plus.shift);
+    doc_set(settings->cfg, "keys.up_scale_plus.alt", bool, settings->keys.up_scale_plus.alt);
+
+    doc_set(settings->cfg, "keys.up_scale_equal.code", int, settings->keys.up_scale_equal.code);
+    doc_set(settings->cfg, "keys.up_scale_equal.ctrl", bool, settings->keys.up_scale_equal.ctrl);
+    doc_set(settings->cfg, "keys.up_scale_equal.shift", bool, settings->keys.up_scale_equal.shift);
+    doc_set(settings->cfg, "keys.up_scale_equal.alt", bool, settings->keys.up_scale_equal.alt);
+
+    doc_set(settings->cfg, "keys.down_scale_minus.code", int, settings->keys.down_scale_minus.code);
+    doc_set(settings->cfg, "keys.down_scale_minus.ctrl", bool, settings->keys.down_scale_minus.ctrl);
+    doc_set(settings->cfg, "keys.down_scale_minus.shift", bool, settings->keys.down_scale_minus.shift);
+    doc_set(settings->cfg, "keys.down_scale_minus.alt", bool, settings->keys.down_scale_minus.alt);
+
+    doc_set(settings->cfg, "keys.down_scale_hyphen.code", int, settings->keys.down_scale_hyphen.code);
+    doc_set(settings->cfg, "keys.down_scale_hyphen.ctrl", bool, settings->keys.down_scale_hyphen.ctrl);
+    doc_set(settings->cfg, "keys.down_scale_hyphen.shift", bool, settings->keys.down_scale_hyphen.shift);
+    doc_set(settings->cfg, "keys.down_scale_hyphen.alt", bool, settings->keys.down_scale_hyphen.alt);
 }
 
 
@@ -232,4 +279,20 @@ void settings_end(settings_t *settings){
     write_settings(settings);
     doc_json_save(settings->cfg, settings->cfg_filename);
     doc_delete(settings->cfg, ".");
+}
+
+
+// check key based on settings
+bool check_key_combo(sfKeyEvent key, key_combo_t type){
+    if(
+        key.code == type.code
+        && (key.control   || !(type.ctrl)  )
+        && (key.shift     || !(type.shift) )
+        && (key.alt       || !(type.alt)   )
+    ){
+        return true;
+    }
+    else{
+        return false;
+    }
 }

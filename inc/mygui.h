@@ -24,6 +24,8 @@ typedef struct{
     // flags used by the mygui module to flag events to the nuklear library and the context
     bool running_flag;                      /**< flags the context to shutdown if false*/
     window_mode_enum window_mode_flag;      /**< flags the change of window mode based on the window_mode_enum enumerator*/
+    bool scale_up_flag;                     /**< flags mygui to increase the sacle of the GUI elements */
+    bool scale_down_flag;                   /**< flags mygui to decrease the sacle of the GUI elements */
 
     // values to be set, that the module need to work
     window_mode_enum window_mode;           /**< indicates what mode/state the window is based on window_mode_enum enumerator*/

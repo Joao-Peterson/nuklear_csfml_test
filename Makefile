@@ -23,7 +23,7 @@ L_FLAGS += -lcsfml-window-2
 SOURCES := main.c src/glad.c src/csfml_window_util.c src/stb_image.c src/settings.c
 SOURCES += src/mygui.c src/nuklear.c src/textures.c
 
-HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/mygui.h 
+HEADERS := inc/csfml_window_util.h inc/stb_image.h inc/mygui.h inc/nuklear_csfml.h
 HEADERS += inc/settings.h
 
 MAIN_APP := main.exe

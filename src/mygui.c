@@ -258,7 +258,7 @@ void mygui_styles(struct nk_context *context, mygui_interface_t *interface){
 
 /* --------------------------------------------- Windows -------------------------------------------- */
 
-// visual settings->window
+// visual settings 
 void mygui_window_visual(struct nk_context *context, mygui_interface_t *interface){
 
     if(nk_begin(context, "Appearance", nk_rect(0,0,100,100), MYGUI_WINDOWS_FLAGS | (interface->first_render_loop ? NK_WINDOW_HIDDEN : 0))){
@@ -288,7 +288,7 @@ void mygui_window_visual(struct nk_context *context, mygui_interface_t *interfac
                 for(doc_size_t i = 0; i < interface->settings->themes_size; i++){                                     // list itens
                     if(nk_combo_item_label(context, interface->settings->themes[i], NK_TEXT_LEFT)){                   // call back on clicked item
                         settings_reload(interface->settings, interface->settings->themes[i], NULL, NULL);
-                        mygui_styles(context, interface);                                                               // redo styles
+                        mygui_styles(context, interface);                                                             // redo styles
                     }
                 }
 
@@ -309,7 +309,7 @@ void mygui_window_visual(struct nk_context *context, mygui_interface_t *interfac
                 for(doc_size_t i = 0; i < interface->settings->parameters_size; i++){                                 // list itens
                     if(nk_combo_item_label(context, interface->settings->parameters_array[i], NK_TEXT_LEFT)){         // call back on clicked item
                         settings_reload(interface->settings, NULL, interface->settings->parameters_array[i], NULL);
-                        mygui_styles(context, interface);                                                               // redo styles
+                        mygui_styles(context, interface);                                                             // redo styles
                     }
                 }
 
@@ -330,7 +330,7 @@ void mygui_window_visual(struct nk_context *context, mygui_interface_t *interfac
                 for(doc_size_t i = 0; i < interface->settings->fonts_size; i++){                                      // list itens
                     if(nk_combo_item_label(context, interface->settings->fonts_names[i], NK_TEXT_LEFT)){              // call back on clicked item
                         settings_reload(interface->settings, NULL, NULL, interface->settings->fonts_names[i]);
-                        mygui_styles(context, interface);                                                               // redo styles
+                        mygui_styles(context, interface);                                                             // redo styles
                     }
                 }
 
@@ -503,13 +503,12 @@ mygui_interface_t *mygui_init(settings_t *settings){
 
     interface->running_flag = true;                      
     interface->first_render_loop = true;              
-    interface->window_mode_flag = 0;
     
     interface->settings = settings;              
 
     interface->topbar_title = interface->settings->parameters.main_window.title;                     
 
-    interface->texture = NULL;                                                      // will be laoded by mygui_styles()                     
+    interface->texture = NULL;                                                      // will be loded by mygui_styles()                     
 
     interface->window_w = interface->settings->parameters.main_window.size.w;                 
     interface->window_h = interface->settings->parameters.main_window.size.h;                 
@@ -521,9 +520,6 @@ mygui_interface_t *mygui_init(settings_t *settings){
     else if(interface->settings->parameters.main_window.size.maximized){
         interface->window_mode_flag = window_mode_maximized;
     }
-
-    interface->topbar_menus_width = 0;                 
-    interface->topbar_title_width = 0;
 
     mygui_load_fonts(interface);                 
 
@@ -541,6 +537,27 @@ void mygui_end(mygui_interface_t *interface){
 
 // main gui routine
 void mygui(struct nk_context *context, mygui_interface_t *interface){
+
+    // events
+    if(interface->scale_up_flag || interface->scale_down_flag){
+        int i;
+        for(i = 0; i < interface->settings->parameters_size; i++){
+            if(!strcmp(interface->settings->active_parameters, interface->settings->parameters_array[i])){
+                break;
+            }
+        }
+        
+        if(interface->scale_up_flag && (i+1 < interface->settings->parameters_size)){
+            settings_reload(interface->settings, NULL, interface->settings->parameters_array[++i], NULL);
+            mygui_styles(context, interface);
+            interface->scale_up_flag = false;
+        }
+        else if(interface->scale_down_flag && (i-1 >= 0)){
+            settings_reload(interface->settings, NULL, interface->settings->parameters_array[--i], NULL);
+            mygui_styles(context, interface);
+            interface->scale_down_flag = false;
+        }
+    }
 
     // main gui window
     if(nk_begin(context, "main_window", nk_rect(0, 0, interface->window_w, interface->window_h), NK_WINDOW_BACKGROUND | NK_WINDOW_NO_SCROLLBAR)){  
@@ -571,8 +588,6 @@ void mygui(struct nk_context *context, mygui_interface_t *interface){
 
     // floating windows
     mygui_window_visual(context, interface);
-
-
 
     if(interface->first_render_loop)
         interface->first_render_loop = false;

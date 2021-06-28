@@ -4,8 +4,9 @@
 #include "glad/glad.h"  
 #include <assert.h>
 #include <SFML/Graphics.h>
-
 #include "nuklear_def.h"
+
+/* ------------------------------------------ Functions --------------------------------- */
 
 NK_API struct nk_context   *nk_csfml_init(sfRenderWindow *window, const struct nk_user_font *font);
 NK_API void                 nk_csfml_font_stash_begin(struct nk_font_atlas **atlas);
@@ -20,7 +21,11 @@ NK_API void                 nk_csfml_device_destroy(void);
 
 #ifdef NK_CSFML_IMPLEMENTATION
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+
+/* ------------------------------------------ Structures -------------------------------- */
 
 struct nk_csfml_device {
     struct nk_buffer cmds;
@@ -50,12 +55,15 @@ struct nk_csfml{
     struct nk_font_atlas atlas;
 }csfml;
 
+/* ------------------------------------------ Functions --------------------------------- */
+
 #ifdef __APPLE__
   #define NK_SHADER_VERSION "#version 150\n"
 #else
   #define NK_SHADER_VERSION "#version 300 es\n"
 #endif
 
+// create structure for context rendering, the device
 NK_API void nk_csfml_device_create(void){
     GLint status;
     static const GLchar* vertex_shader =
@@ -141,6 +149,7 @@ NK_API void nk_csfml_device_create(void){
     glBindVertexArray(0);
 }
 
+// end the structure for context rendering, the device
 NK_API void nk_csfml_device_destroy(void){
     struct nk_csfml_device* dev = &csfml.ogl;
 
@@ -155,6 +164,7 @@ NK_API void nk_csfml_device_destroy(void){
     nk_buffer_free(&dev->cmds);
 }
 
+// set the atlas on the device
 NK_INTERN void nk_csfml_device_upload_atlas(const void* image, int width, int height){
     struct nk_csfml_device* dev = &csfml.ogl;
     glGenTextures(1, &dev->font_tex);
@@ -165,6 +175,7 @@ NK_INTERN void nk_csfml_device_upload_atlas(const void* image, int width, int he
                 GL_RGBA, GL_UNSIGNED_BYTE, image);
 }
 
+// call the context to render nuklear commands
 NK_API void nk_csfml_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int max_element_buffer){
     /* setup global state */
     struct nk_csfml_device* dev = &csfml.ogl;
@@ -263,6 +274,7 @@ NK_API void nk_csfml_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int
     glDisable(GL_SCISSOR_TEST);
 }
 
+// TODO clipboard
 static void nk_csfml_clipboard_paste(nk_handle usr, struct nk_text_edit* edit){
 #if 0
     /* Not Implemented in SFML */
@@ -273,6 +285,7 @@ static void nk_csfml_clipboard_paste(nk_handle usr, struct nk_text_edit* edit){
 #endif
 }
 
+// TODO clipboard
 static void nk_csfml_clipboard_copy(nk_handle usr, const char* text, int len){
 #if 0
     char* str = 0;
@@ -290,6 +303,7 @@ static void nk_csfml_clipboard_copy(nk_handle usr, const char* text, int len){
 #endif
 }
 
+// abstraction over nk_init_default(), for also handling the device init
 NK_API struct nk_context *nk_csfml_init(sfRenderWindow *window, const struct nk_user_font *font){
     csfml.window = window;
     nk_init_default(&csfml.ctx, font);
@@ -300,12 +314,14 @@ NK_API struct nk_context *nk_csfml_init(sfRenderWindow *window, const struct nk_
     return &csfml.ctx;
 }
 
+// abstraction over the nk_font_atlas_begin 
 NK_API void nk_csfml_font_stash_begin(struct nk_font_atlas** atlas){
     nk_font_atlas_init_default(&csfml.atlas);
     nk_font_atlas_begin(&csfml.atlas);
     *atlas = &csfml.atlas;
 }
 
+// abstraction over the nk_font_atlas_end
 NK_API void nk_csfml_font_stash_end(){
     const void* image;
     int w, h;
@@ -316,6 +332,7 @@ NK_API void nk_csfml_font_stash_end(){
         nk_style_set_font(&csfml.ctx, &csfml.atlas.default_font->handle);
 }
 
+// pass context events to nuklear lib
 NK_API int nk_csfml_handle_event(sfEvent *evt){
     struct nk_context* ctx = &csfml.ctx;
     /* optional grabbing behavior */
@@ -328,58 +345,107 @@ NK_API int nk_csfml_handle_event(sfEvent *evt){
         sfMouse_setPositionRenderWindow(mpos, csfml.window);
         ctx->input.mouse.ungrab = 0;
     }
+
     if(evt->type == sfEvtKeyReleased || evt->type == sfEvtKeyPressed)
     {
         int down = evt->type == sfEvtKeyPressed;
         sfKeyCode key = evt->key.code;
-        if(key == sfKeyRShift || key == sfKeyLShift)
-            nk_input_key(ctx, NK_KEY_SHIFT, down);
-        else if(key == sfKeyDelete)
-            nk_input_key(ctx, NK_KEY_DEL, down);
-        else if(key == sfKeyReturn)
-            nk_input_key(ctx, NK_KEY_ENTER, down);
-        else if(key == sfKeyTab)
-            nk_input_key(ctx, NK_KEY_TAB, down);
-        else if(key == sfKeyBackspace)
-            nk_input_key(ctx, NK_KEY_BACKSPACE, down);
-        else if(key == sfKeyHome) {
-            nk_input_key(ctx, NK_KEY_TEXT_START, down);
-            nk_input_key(ctx, NK_KEY_SCROLL_START, down);
-        } else if(key == sfKeyEnd) {
-            nk_input_key(ctx, NK_KEY_TEXT_END, down);
-            nk_input_key(ctx, NK_KEY_SCROLL_END, down);
-        } else if(key == sfKeyPageDown)
-            nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
-        else if(key == sfKeyPageUp)
-            nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
-        else if(key == sfKeyZ)
-            nk_input_key(ctx, NK_KEY_TEXT_UNDO, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyR)
-            nk_input_key(ctx, NK_KEY_TEXT_REDO, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyC)
-            nk_input_key(ctx, NK_KEY_COPY, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyV)
-            nk_input_key(ctx, NK_KEY_PASTE, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyX)
-            nk_input_key(ctx, NK_KEY_CUT, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyB)
-            nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyE)
-            nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down && sfKeyboard_isKeyPressed(sfKeyLControl));
-        else if(key == sfKeyUp)
-            nk_input_key(ctx, NK_KEY_UP, down);
-        else if(key == sfKeyDown)
-            nk_input_key(ctx, NK_KEY_DOWN, down);
-        else if(key == sfKeyLeft) {
-            if(sfKeyboard_isKeyPressed(sfKeyLControl))
-                nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
-            else nk_input_key(ctx, NK_KEY_LEFT, down);
-        } else if(key == sfKeyRight) {
-            if(sfKeyboard_isKeyPressed(sfKeyLControl))
-                nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
-            else nk_input_key(ctx, NK_KEY_RIGHT, down);
-        } else return 0;
+
+        switch(key){
+            case sfKeyRShift:
+            case sfKeyLShift:
+                nk_input_key(ctx, NK_KEY_SHIFT, down);
+            break;
+
+            case sfKeyDelete:
+                nk_input_key(ctx, NK_KEY_DEL, down);
+            break;
+
+            case sfKeyReturn:
+                nk_input_key(ctx, NK_KEY_ENTER, down);
+            break;
+
+            case sfKeyTab:
+                nk_input_key(ctx, NK_KEY_TAB, down);
+            break;
+
+            case sfKeyBackspace:
+                nk_input_key(ctx, NK_KEY_BACKSPACE, down);
+            break;
+
+            case sfKeyHome:
+                nk_input_key(ctx, NK_KEY_TEXT_START, down);
+                nk_input_key(ctx, NK_KEY_SCROLL_START, down);
+            break;
+            
+            case sfKeyEnd:
+                nk_input_key(ctx, NK_KEY_TEXT_END, down);
+            break;
+
+            case sfKeyPageDown:
+                nk_input_key(ctx, NK_KEY_SCROLL_END, down);
+                nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
+            break;
+
+            case sfKeyPageUp:
+                nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
+            break;
+
+            case sfKeyZ:
+                nk_input_key(ctx, NK_KEY_TEXT_UNDO, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyR:
+                nk_input_key(ctx, NK_KEY_TEXT_REDO, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyC:
+                nk_input_key(ctx, NK_KEY_COPY, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyV:
+                nk_input_key(ctx, NK_KEY_PASTE, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyX:
+                nk_input_key(ctx, NK_KEY_CUT, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyB:
+                nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyE:
+                nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down && sfKeyboard_isKeyPressed(sfKeyLControl));
+            break;
+
+            case sfKeyUp:
+                nk_input_key(ctx, NK_KEY_UP, down);
+            break;
+
+            case sfKeyDown:
+                nk_input_key(ctx, NK_KEY_DOWN, down);
+            break;
+
+            case sfKeyLeft:
+                if(sfKeyboard_isKeyPressed(sfKeyLControl))
+                    nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
+                else nk_input_key(ctx, NK_KEY_LEFT, down);
+            break;
+
+            case sfKeyRight:
+                if(sfKeyboard_isKeyPressed(sfKeyLControl))
+                    nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
+                else nk_input_key(ctx, NK_KEY_RIGHT, down);
+            break;
+
+            default:
+                return 0;
+            break;
+        }
+
         return 1;
+
     } else if(evt->type == sfEvtMouseButtonPressed || evt->type == sfEvtMouseButtonReleased) {
         int down = evt->type == sfEvtMouseButtonPressed;
         const int x = evt->mouseButton.x, y = evt->mouseButton.y;
@@ -419,6 +485,7 @@ NK_API int nk_csfml_handle_event(sfEvent *evt){
     return 0;
 }
 
+// abstraction over nk_free(), for also handling the device end
 NK_API void nk_csfml_shutdown(){
     nk_font_atlas_clear(&csfml.atlas);
     nk_free(&csfml.ctx);
